@@ -84,14 +84,14 @@ window.BODA_CONFIG = {
 
   // ── CLOUDINARY ────────────────────────────────────────
   cloudinary: {
-    cloudName:    "TU_CLOUD_NAME",
-    uploadPreset: "TU_UPLOAD_PRESET"
+    cloudName:    "di6hpumct",
+    uploadPreset: "boda_jissel_daniel"
   },
 
   // ── AIRTABLE ─────────────────────────────────────────
   airtable: {
-    apiKey:  "TU_API_KEY_AQUI",
-    baseId:  "TU_BASE_ID_AQUI",
+    apiKey:  "pat4zs7JDR0AQGPfa.f4c24a2ca0e1e9f788656d2b54229c12e75c762a1a6b3b79819301df2f6d0e5b",
+    baseId:  "app4iSEuGfWcESBSB",
     tableId: "Firmas"
   },
 
