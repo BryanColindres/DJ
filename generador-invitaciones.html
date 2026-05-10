@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Generador de Invitaciones — Bryan & Stefany</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --rose:#9B6B6B; --blush:#EDD5C5; --cream:#F7EFE8; --gold:#C8A96E; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Jost',sans-serif; background:var(--cream); color:#3A2A2A; min-height:100vh; padding:2rem 1rem; }
+    h1 { font-family:'Cormorant Garamond',serif; font-size:2.5rem; font-weight:400; color:var(--rose); text-align:center; margin-bottom:.5rem; }
+    .subtitle { text-align:center; font-size:.8rem; letter-spacing:.2em; text-transform:uppercase; color:#A88A8A; margin-bottom:2.5rem; }
+    .card { background:white; border-radius:20px; padding:2rem; box-shadow:0 4px 24px rgba(155,107,107,.1); max-width:800px; margin:0 auto 1.5rem; }
+    label { font-size:.68rem; letter-spacing:.15em; text-transform:uppercase; color:#A88A8A; display:block; margin-bottom:.4rem; }
+    input, textarea {
+      width:100%; padding:.7rem 1rem; border:1.5px solid var(--blush); border-radius:10px;
+      font-family:'Jost',sans-serif; font-size:.9rem; outline:none; transition:border .2s;
+      background:var(--cream); color:#3A2A2A;
+    }
+    input:focus, textarea:focus { border-color:var(--rose); }
+    textarea { min-height:180px; resize:vertical; font-size:.82rem; }
+    .btn { display:inline-flex; align-items:center; gap:.5rem; padding:.75rem 2rem; border-radius:50px; border:none; cursor:pointer; font-family:'Jost',sans-serif; font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; transition:all .25s; }
+    .btn--primary { background:var(--rose); color:white; }
+    .btn--primary:hover { background:#C4907A; transform:translateY(-2px); box-shadow:0 6px 20px rgba(155,107,107,.3); }
+    .btn--wa { background:#25D366; color:white; font-size:.75rem; padding:.55rem 1.25rem; }
+    .btn--wa:hover { background:#20B858; transform:translateY(-1px); }
+    .btn--copy { background:var(--blush); color:var(--rose); font-size:.7rem; padding:.45rem 1rem; }
+    .btn--copy:hover { background:var(--rose); color:white; }
+    .url-field { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+    .url-text { font-size:.78rem; color:#6B4F4F; word-break:break-all; flex:1; padding:.5rem .75rem; background:var(--cream); border-radius:8px; border:1px solid var(--blush); }
+    .guest-row { border:1px solid var(--blush); border-radius:14px; padding:1.25rem; margin-bottom:1rem; background:white; }
+    .guest-row h3 { font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--rose); margin-bottom:.75rem; }
+    .guest-actions { display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap; }
+    .hint { font-size:.75rem; color:#A88A8A; line-height:1.6; margin-top:.5rem; }
+    .instructions-box { background:linear-gradient(135deg,#FFF5EE,#FFF0E8); border:1px solid var(--blush); border-radius:14px; padding:1.5rem; margin-bottom:1.5rem; }
+    .instructions-box h3 { font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:var(--rose); margin-bottom:.75rem; }
+    .instructions-box ol { padding-left:1.25rem; }
+    .instructions-box li { font-size:.85rem; line-height:1.8; color:#6B4F4F; }
+    .instructions-box code { background:var(--blush); padding:.1rem .4rem; border-radius:4px; font-size:.8rem; }
+    .msg-preview { font-size:.78rem; color:#6B4F4F; background:var(--cream); border-radius:8px; padding:.75rem 1rem; margin-top:.5rem; line-height:1.7; border:1px solid var(--blush); white-space:pre-wrap; }
+    .results-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:.5rem; }
+    #totalCount { font-size:.78rem; color:var(--rose); font-weight:400; }
+  </style>
+</head>
+<body>
+
+<h1>💌 Generador de Invitaciones</h1>
+<p class="subtitle">Bryan Daniel & Stefany Jissel · 03.10.2026</p>
+
+<!-- Instrucciones -->
+<div class="card">
+  <div class="instructions-box">
+    <h3>📋 Instrucciones rápidas</h3>
+    <ol>
+      <li>Cambia la <strong>URL base</strong> a la dirección real de tu sitio en GitHub Pages</li>
+      <li>En el cuadro de invitados, escribe un nombre por línea</li>
+      <li>Para parejas escribe: <code>Carlos y Ana Rodriguez</code></li>
+      <li>Haz clic en <strong>"Generar enlaces"</strong></li>
+      <li>Cada invitado tendrá su botón de WhatsApp — un clic y se abre el chat listo</li>
+    </ol>
+  </div>
+
+  <!-- URL base -->
+  <div style="margin-bottom:1.5rem">
+    <label>URL base de tu sitio (cámbiala por la tuya)</label>
+    <input type="text" id="baseUrl" value="https://b.colindres.github.io/boda/" placeholder="https://tu-usuario.github.io/boda/"/>
+    <p class="hint">Esta es la dirección de tu invitación en GitHub Pages</p>
+  </div>
+
+  <!-- Mensaje de WhatsApp -->
+  <div style="margin-bottom:1.5rem">
+    <label>Mensaje de WhatsApp (usa {nombre} para insertar el nombre automáticamente)</label>
+    <input type="text" id="waMessage" value="Hola {nombre} 💕 Bryan y Stefany te invitan a su boda el 03 de octubre de 2026. Aquí está tu invitación personal: {url}"/>
+    <p class="hint">Vista previa: <span class="msg-preview" id="msgPreview"></span></p>
+  </div>
+
+  <!-- Número WhatsApp -->
+  <div style="margin-bottom:1.5rem">
+    <label>Tu número de WhatsApp (para el botón de confirmación)</label>
+    <input type="text" id="waNumber" value="50431626792"/>
+  </div>
+
+  <!-- Lista de invitados -->
+  <div style="margin-bottom:1.5rem">
+    <label>Lista de invitados (un nombre por línea)</label>
+    <textarea id="guestList" placeholder="María López
+Carlos y Ana Rodríguez
+Familia Hernández
+Jorge Mejía
+Tía Rosa
+Luis y Carmen Flores"></textarea>
+    <p class="hint">Escribe exactamente como quieres que aparezca el nombre en la invitación</p>
+  </div>
+
+  <button class="btn btn--primary" onclick="generateLinks()">✨ Generar enlaces personalizados</button>
+</div>
+
+<!-- Resultados -->
+<div class="card" id="resultsCard" style="display:none">
+  <div class="results-header">
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--rose)">Invitaciones generadas</h2>
+    <span id="totalCount"></span>
+  </div>
+  <div id="resultsContainer"></div>
+</div>
+
+<script>
+  // Vista previa del mensaje
+  function updatePreview() {
+    const msg = document.getElementById('waMessage').value;
+    const preview = msg
+      .replace('{nombre}', 'María López')
+      .replace('{url}', document.getElementById('baseUrl').value + '?i=maria-lopez');
+    document.getElementById('msgPreview').textContent = preview;
+  }
+  document.getElementById('waMessage').addEventListener('input', updatePreview);
+  document.getElementById('baseUrl').addEventListener('input', updatePreview);
+  updatePreview();
+
+  function nameToSlug(name) {
+    return name.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/\s+/g,'-')
+      .replace(/[^a-z0-9-]/g,'')
+      .replace(/-+/g,'-');
+  }
+
+  function generateLinks() {
+    const baseUrl = document.getElementById('baseUrl').value.trim().replace(/\/?$/,'/');
+    const waMsg   = document.getElementById('waMessage').value.trim();
+    const waNum   = document.getElementById('waNumber').value.trim();
+    const guests  = document.getElementById('guestList').value
+      .split('\n')
+      .map(g => g.trim())
+      .filter(g => g.length > 0);
+
+    if (guests.length === 0) { alert('Escribe al menos un nombre de invitado'); return; }
+
+    const container = document.getElementById('resultsContainer');
+    const card      = document.getElementById('resultsCard');
+    container.innerHTML = '';
+    card.style.display = 'block';
+    document.getElementById('totalCount').textContent = `${guests.length} invitación${guests.length!==1?'es':''}`;
+
+    guests.forEach(name => {
+      const slug = nameToSlug(name);
+      const url  = `${baseUrl}?i=${slug}`;
+      const msg  = waMsg.replace('{nombre}', name).replace('{url}', url);
+      const waUrl = `https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;
+
+      const row = document.createElement('div');
+      row.className = 'guest-row';
+      row.innerHTML = `
+        <h3>💌 ${name}</h3>
+        <div class="url-field">
+          <span class="url-text" id="url_${slug}">${url}</span>
+          <button class="btn btn--copy" onclick="copyText('${url}', this)">📋 Copiar</button>
+        </div>
+        <div class="guest-actions">
+          <a class="btn btn--wa" href="${waUrl}" target="_blank">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Abrir WhatsApp con ${name.split(' ')[0]}
+          </a>
+        </div>`;
+      container.appendChild(row);
+    });
+
+    card.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '✅ Copiado';
+      setTimeout(() => btn.textContent = orig, 1500);
+    });
+  }
+</script>
+</body>
+</html>
