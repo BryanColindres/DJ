@@ -59,8 +59,7 @@ function applyConfig() {
     set('vestTexto',       C.vestimentaSeccion.texto);
     const vl = document.getElementById('vestPinterest');
     if(vl) vl.href = C.vestimentaSeccion.pinterestUrl;
-    const vi = document.getElementById('vestImagen');
-    if(vi) vi.src = C.vestimentaSeccion.imagen;
+    // Sin columna de imagen en esta versión
   }
 
   // RSVP
