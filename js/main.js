@@ -390,13 +390,15 @@ function initBook() {
   $('bookSubmit').addEventListener('click', submitFirma);
 
   const prevB=$('bookPrev'), nextB=$('bookNext');
-  if(prevB) prevB.addEventListener('click',()=>{ if(bookPage>0){bookPage--;renderEntries();} });
+  if(prevB) prevB.addEventListener('click',()=>{
+    if(bookPage>0){ bookPage--; renderEntries(airtableCache); }
+  });
   if(nextB) nextB.addEventListener('click',()=>{
-    const pub=getPublic();
-    if((bookPage+1)*PER_PAGE<pub.length){bookPage++;renderEntries();}
+    if((bookPage+1)*PER_PAGE<airtableCache.length){ bookPage++; renderEntries(airtableCache); }
   });
 
-  renderEntries();
+  // Cargar mensajes desde Airtable al iniciar
+  loadFromAirtable();
 }
 
 async function uploadCloudinary(file) {
@@ -422,9 +424,13 @@ async function submitFirma() {
     ts:Date.now()
   };
 
+  // Guardar en Airtable (fuente central) y localmente como respaldo
+  if(C.airtable.apiKey!=='TU_API_KEY_AQUI') {
+    try { await saveAirtable(firma); } catch(e){ console.warn('Airtable error:',e); }
+  }
+  // También local como caché rápida
   const all=getAllEntries(); all.unshift(firma);
   localStorage.setItem(BOOK_KEY,JSON.stringify(all));
-  if(C.airtable.apiKey!=='TU_API_KEY_AQUI') saveAirtable(firma).catch(()=>{});
 
   $('bookMessage').value=''; $('bookChars').textContent='280';
   uploadedPhotoUrl=''; if($('bookPhotoInput')) $('bookPhotoInput').value='';
@@ -433,24 +439,64 @@ async function submitFirma() {
   const pr=$('bookPhotoRemove'); if(pr) pr.style.display='none';
 
   btn.disabled=false; $('bookSubmitLabel').textContent='Firmar el libro 💌';
-  bookPage=0; renderEntries();
+  bookPage=0;
+  // Recargar desde Airtable para mostrar todos los mensajes actualizados
+  await loadFromAirtable();
   toast(esPrivado?'🔒 Mensaje enviado — solo Bryan & Stefany lo verán 💌':'💌 ¡Tu mensaje fue enviado con amor!');
 }
 
-function getAllEntries(){ try{return JSON.parse(localStorage.getItem(BOOK_KEY))||[];}catch{return[];} }
-function getPublic(){ if(!C.libroFirmas.mostrarMensajesPublicos) return []; return getAllEntries().filter(e=>!e.privado); }
+// Cache en memoria de los registros de Airtable
+let airtableCache = [];
 
-function renderEntries() {
-  const entries=getPublic(), container=$('bookEntries'), navEl=$('bookNav');
+// Cargar TODOS los mensajes desde Airtable (fuente única de verdad)
+async function loadFromAirtable() {
+  if(C.airtable.apiKey==='TU_API_KEY_AQUI') {
+    // Sin Airtable → usar localStorage
+    renderEntries(getAllEntries().filter(e=>!e.privado));
+    return;
+  }
+  const container=$('bookEntries');
+  if(container) container.innerHTML='<p class="book-entries__empty" style="opacity:.5">Cargando mensajes... 🌹</p>';
+
+  try {
+    const {apiKey,baseId,tableId}=C.airtable;
+    // Traer registros públicos ordenados por fecha de creación descendente
+    const url=`https://api.airtable.com/v0/${baseId}/${tableId}?filterByFormula=${encodeURIComponent('{EsPublico}=TRUE()')}&sort[0][field]=Fecha&sort[0][direction]=desc&maxRecords=100`;
+    const res=await fetch(url,{headers:{'Authorization':`Bearer ${apiKey}`}});
+    const data=await res.json();
+    if(data.records) {
+      airtableCache = data.records.map(r=>({
+        nombre:  r.fields.Nombre  || 'Invitado',
+        mensaje: r.fields.Mensaje || '',
+        emoji:   r.fields.Emoji   || '❤️',
+        fotoUrl: r.fields.FotoUrl || '',
+        fecha:   r.fields.Fecha   || '',
+        privado: !r.fields.EsPublico
+      }));
+      renderEntries(airtableCache);
+    }
+  } catch(e) {
+    console.warn('Error leyendo Airtable:', e);
+    // Fallback a localStorage si falla la red
+    renderEntries(getAllEntries().filter(e=>!e.privado));
+  }
+}
+
+function getAllEntries(){ try{return JSON.parse(localStorage.getItem(BOOK_KEY))||[];}catch{return[];} }
+
+function renderEntries(entries) {
+  if(!C.libroFirmas.mostrarMensajesPublicos) entries=[];
+  const container=$('bookEntries'), navEl=$('bookNav');
   if(!container) return;
-  if(!entries.length){
+  if(!entries||!entries.length){
     container.innerHTML='<p class="book-entries__empty">Los mensajes aparecerán aquí 🌹</p>';
     if(navEl) navEl.style.display='none'; return;
   }
-  const start=bookPage*PER_PAGE, page=entries.slice(start,start+PER_PAGE);
   const total=Math.ceil(entries.length/PER_PAGE);
+  const start=bookPage*PER_PAGE;
+  const page=entries.slice(start,start+PER_PAGE);
   container.innerHTML=page.map(e=>{
-    const photoHtml = e.fotoUrl&&e.fotoUrl!=='_local_'
+    const photoHtml = e.fotoUrl&&e.fotoUrl!=='_local_'&&e.fotoUrl!==''
       ? `<img src="${e.fotoUrl}" alt="${e.nombre}"/>`
       : `<span>${e.emoji}</span>`;
     return `<div class="book-entry">
@@ -465,16 +511,27 @@ function renderEntries() {
       </div>
     </div>`;
   }).join('');
-  if(navEl){ navEl.style.display=total>1?'flex':'none'; $('bookPageNum').textContent=`${bookPage+1} / ${total}`; }
+  if(navEl){
+    navEl.style.display=total>1?'flex':'none';
+    $('bookPageNum').textContent=`${bookPage+1} / ${total}`;
+  }
 }
 
 async function saveAirtable(firma) {
   const {apiKey,baseId,tableId}=C.airtable;
-  await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`,{
+  const res=await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`,{
     method:'POST',
     headers:{'Authorization':`Bearer ${apiKey}`,'Content-Type':'application/json'},
-    body:JSON.stringify({fields:{Nombre:firma.nombre,Mensaje:firma.mensaje,Emoji:firma.emoji,FotoUrl:firma.fotoUrl,EsPublico:!firma.privado,Fecha:firma.fecha}})
+    body:JSON.stringify({fields:{
+      Nombre:   firma.nombre,
+      Mensaje:  firma.mensaje,
+      Emoji:    firma.emoji,
+      FotoUrl:  firma.fotoUrl||'',
+      EsPublico:!firma.privado,
+      Fecha:    firma.fecha
+    }})
   });
+  if(!res.ok) throw new Error('Airtable save failed: '+res.status);
 }
 
 // ── Toast ─────────────────────────────────────────────
