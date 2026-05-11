@@ -88,8 +88,32 @@
       <span></span></div>
       <p class="hero__date">03 · 10 · 2026</p>
     </div>
-    <div class="hero__scroll"><span></span></div>
+    <!-- Flecha premium de scroll -->
+    <div class="scroll-hint" id="scrollHint">
+      <p class="scroll-hint__text">Desliza</p>
+      <div class="scroll-hint__arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12l7 7 7-7"/>
+        </svg>
+      </div>
+    </div>
   </section>
+  <script>
+    // Desaparece suavemente en cuanto el usuario empieza a deslizar
+    (function(){
+      var hint = document.getElementById('scrollHint');
+      if(!hint) return;
+      var hidden = false;
+      window.addEventListener('scroll', function(){
+        if(!hidden && window.scrollY > 30){
+          hidden = true;
+          hint.style.opacity = '0';
+          hint.style.transform = 'translateX(-50%) translateY(10px)';
+          setTimeout(function(){ hint.style.display='none'; }, 600);
+        }
+      }, { passive: true });
+    })();
+  </script>
 
   <!-- ── COUNTDOWN ── -->
   <section class="section-countdown">
