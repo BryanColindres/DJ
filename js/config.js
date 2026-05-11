@@ -10,7 +10,7 @@ window.BODA_CONFIG = {
   evento: {
     fecha:      "2026-10-03T11:00:00",
     fechaTexto: "Sábado, 03 de octubre de 2026",
-    hora:       "11:00 AM",
+    hora:       "11:01 AM",
     lugar:      "Valletal Eventos",
     mapsUrl:    "https://maps.app.goo.gl/5VHu6E56MUNGPrey8?g_st=ac",
     wazeUrl:    "https://waze.com/ul?ll=14.129855588419803,-87.03454760434946&navigate=yes",
