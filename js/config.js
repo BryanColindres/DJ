@@ -67,7 +67,7 @@ window.BODA_CONFIG = {
   vestimentaSeccion: {
     titulo:    "Código de Vestimenta",
     subtitulo: "Etiqueta formal, colores suaves",
-    texto:     "Nos reservamos el blanco para la novia y el beige para el novio. Los invitamos a usar tonos cálidos y elegantes que armonicen con la paleta de la celebración.",
+    texto:     "Nos reservamos el blanco para la novia y el beige para el novio. Los invitamos a usar tonos cálidos y elegantes.",
     pinterestUrl:   "https://pin.it/7ask6Yvrq",
     pinterestLabel: "Ver referencias en Pinterest",
     imagen:    ""
