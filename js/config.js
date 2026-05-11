@@ -106,7 +106,7 @@ window.BODA_CONFIG = {
   video: "img/video-intro.mp4",
 
   // ⏱️ Segundos de espera después de que termine el video (cámbialo a lo que quieras)
-  videoDelay: 2,
+  videoDelay: 0,
   audio: { musica: "audio/musica.mp3", mensajeVoz: "audio/mensaje.mp3" },
 
   fotos: {
