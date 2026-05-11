@@ -28,7 +28,20 @@
     preload="metadata"
   ></video>
 
-  <!-- Sin overlay — el video se ve directo desde el inicio -->
+  <!-- Mensaje de toque — elegante, aparece sobre el video -->
+  <div class="video-tap-msg" id="videoTapMsg">
+    <div class="video-tap-msg__inner">
+      <div class="video-tap-msg__monogram">B <span>&</span> S</div>
+      <p class="video-tap-msg__pre">03 · 10 · 2026</p>
+      <h2 class="video-tap-msg__title">Tienes una invitación</h2>
+      <p class="video-tap-msg__sub">Toca para reproducir</p>
+      <div class="video-tap-msg__pulse">
+        <div class="video-tap-msg__ring"></div>
+        <div class="video-tap-msg__ring video-tap-msg__ring--2"></div>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+    </div>
+  </div>
 
   <!-- Barra de progreso del video -->
   <div class="video-progress-bar" id="videoProgressBar">
