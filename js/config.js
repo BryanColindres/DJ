@@ -10,7 +10,7 @@ window.BODA_CONFIG = {
   evento: {
     fecha:      "2026-10-03T11:00:00",
     fechaTexto: "Sábado, 03 de octubre de 2026",
-    hora:       "11:01 AM",
+    hora:       "10:30 AM",
     lugar:      "Cerro Grande, Valle de Ángeles",
     mapsUrl:    "https://maps.app.goo.gl/5VHu6E56MUNGPrey8?g_st=ac",
     wazeUrl:    "https://waze.com/ul?ll=14.129855588419803,-87.03454760434946&navigate=yes",
@@ -59,7 +59,7 @@ window.BODA_CONFIG = {
   // ── INSTRUCCIONES ────────────────────────────────────
   instrucciones: [
     { icono:"⏰", titulo:"Hora de llegada",      texto:"Te pedimos llegar 30 minutos antes de la ceremonia para que puedas ubicarte con comodidad." },
-    { icono:"🚫", titulo:"Solo adultos",         texto:"Esperamos compartir una celebración pensada exclusivamente para adultos. Para una mejor organización del evento, agradecemos respetar que la invitación sea únicamente para las personas señaladas." },
+    { icono:"🚫", titulo:"Solo adultos",         texto:"Esperamos compartir una celebración pensada exclusivamente para adultos. Para una mejor organización del evento, agradecemos respetar que la invitación es únicamente para las personas señaladas." },
     { icono:"🎁", titulo:"Regalos",              texto:"Tu presencia es el mejor regalo en este día especial; cualquier otro detalle será una contribución para nuestro hogar y futuros sueños." }
   ],
 
@@ -70,7 +70,7 @@ window.BODA_CONFIG = {
     texto:     "Nos reservamos el blanco para la novia y el beige para el novio. Los invitamos a usar tonos cálidos y elegantes que armonicen con la paleta de la celebración.",
     pinterestUrl:   "https://pin.it/7ask6Yvrq",
     pinterestLabel: "Ver referencias en Pinterest",
-    imagen:    "img/paleta-colores.png"
+    imagen:    "img/paleta-colores1.png"
   },
 
   // ── TÍTULOS SECCIÓN HISTORIA ─────────────────────────
