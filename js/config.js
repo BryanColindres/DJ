@@ -19,7 +19,7 @@ window.BODA_CONFIG = {
 
   whatsapp: {
     numero:  "50431626792",
-    mensaje: "Hola {nombre}, confirmo mi asistencia a la boda de Bryan y Stefany el 03 de octubre de 2026. 🌹"
+    mensaje: "Hola {nombre}, confirmo mi asistencia a la boda de Bryan y Stefany el 03 de octubre de 2026."
   },
 
   versiculo: {
@@ -27,56 +27,51 @@ window.BODA_CONFIG = {
     cita:  "1 Corintios 13:4"
   },
 
-  // ── INVITACIÓN PERSONALIZADA ─────────────────────────
-  // Mensaje que aparece en la sección de confirmación
-  // {nombre} se reemplaza automáticamente con el nombre del invitado
   invitacionPersonal: {
     titulo:  "Esta invitación es personal e intransferible",
     mensaje: "Ha sido enviada especialmente para:",
     nota:    "Por favor no compartas este enlace con otras personas."
   },
 
-  // ── VESTIMENTA ───────────────────────────────────────
   vestimenta: {
-    // Cambia este link cuando tengas tu collage de Pinterest listo
     pinterestUrl: "https://www.pinterest.com",
-    texto: "Etiqueta formal. Evita el blanco y el negro puro. Preferimos tonos cálidos y elegantes."
+    texto: "Etiqueta formal, colores suaves. Nos reservamos el blanco para la novia y el beige para el novio. Toca el botón para ver referencias de vestimenta en Pinterest."
   },
 
-  // ── REGALO ───────────────────────────────────────────
   regalo: {
-    titulo: "Regalo",
-    // Cambia este texto cuando quieras personalizarlo
-    texto: "Tu presencia es nuestro mayor regalo. Si deseas obsequiarnos algo, preferimos recibirlo en efectivo. Esto nos ayudará a construir juntos los sueños que tenemos como pareja."
+    titulo: "Regalos",
+    texto: "Tu presencia es el mejor regalo en este día especial; cualquier otro detalle será una contribución para nuestro hogar y futuros sueños."
   },
 
-  // ── LÍNEA DE TIEMPO — todos con foto ─────────────────
-  // Las fotos se repiten por ahora, cámbialas después
+  // ── LÍNEA DE TIEMPO — 9 eventos ──────────────────────
   timeline: [
-    { fecha:"2020",           titulo:"Nos conocimos",        texto:"Una tarde que ninguno de los dos olvidará. Algo especial comenzó sin que lo planeáramos.",              icono:"✨", foto:"img/preboda1.png"  },
-    { fecha:"2020",           titulo:"Primera conversación", texto:"Horas hablando sin darnos cuenta. Supimos que había algo diferente en el otro.",                        icono:"💬", foto:"img/preboda2.jpg"  },
-    { fecha:"2021",           titulo:"Primera cita",         texto:"Los nervios, las risas y la magia de estar juntos por primera vez a solas.",                            icono:"🌹", foto:"img/preboda3.jpg"  },
-    { fecha:"2021",           titulo:"Nuestro primer viaje", texto:"Descubrimos que viajar juntos era lo más natural del mundo.",                                           icono:"✈️", foto:"img/preboda4.jpg"  },
-    { fecha:"2022",           titulo:"Nos hicimos novios",   texto:"El día que lo hicimos oficial. Comenzó una nueva etapa llena de amor.",                                 icono:"💑", foto:"img/preboda5.JPG"  },
-    { fecha:"2022",           titulo:"Nuestras familias",    texto:"Dos familias que se unieron y que hoy forman una sola.",                                                icono:"👨‍👩‍👧‍👦", foto:"img/preboda6.JPG"  },
-    { fecha:"2023",           titulo:"Momentos difíciles",   texto:"Aprendimos que juntos somos más fuertes. Cada obstáculo nos acercó más.",                               icono:"🤝", foto:"img/preboda7.JPG"  },
-    { fecha:"2024",           titulo:"La propuesta",         texto:"El momento en que todo cambió. La respuesta fue un sí que venía del corazón.",                          icono:"💍", foto:"img/preboda1.png"  },
-    { fecha:"2025",           titulo:"Nuestra preboda",      texto:"Un día de fotos, risas y amor. La antesala del momento más especial.",                                  icono:"📸", foto:"img/preboda3.jpg"  },
-    { fecha:"03 · 10 · 2026", titulo:"Nos casamos",          texto:"El día que prometemos amarnos, respetarnos y acompañarnos para siempre.",                              icono:"⛪", foto:"img/hero.jpg"       }
+    { fecha:"Enero, 2022",         titulo:"Nos conocimos",          texto:"Un día aparecimos en la vida del otro, sin planearlo, ni esperarlo. Cada uno pensando en lo suyo, sin darnos cuenta lo que vendría a continuación, de la mano de nuestro instrumento querido.",                                                                                                icono:"✨", foto:"img/preboda1.png" },
+    { fecha:"2022",                titulo:"Primeras conversaciones", texto:"Nuestra amistad se fue haciendo cada vez más grande y llegamos a compartir experiencias pasadas y planes a futuro. Y poco a poco la amistad se fue transformando en algo más, hasta el punto de que en nuestras conversaciones del futuro nos visualizábamos juntos.",                          icono:"💬", foto:"img/preboda2.jpg" },
+    { fecha:"Enero, 2023",         titulo:"Primera cita",           texto:"Inolvidable cita, donde ambos, finalmente, nos abrimos y confesamos lo que ya llevaba días sembrado en nuestro interior. Desde entonces, las citas y los planes se convirtieron en el motor de nuestra vida.",                                                                                  icono:"🌹", foto:"img/preboda3.jpg" },
+    { fecha:"10 de abril, 2023",   titulo:"Nos hicimos novios",     texto:"Luego de hacer muy larga la espera, decidimos dar el paso que nuestros corazones ya habían elegido desde hacía tiempo. Así comenzó oficialmente nuestra historia como novios, una etapa llena de amor, sueños compartidos.",                                                                   icono:"💑", foto:"img/preboda4.jpg" },
+    { fecha:"Mayo, 2024",          titulo:"Nuestro primer viaje",   texto:"Descubrimos que viajar juntos era lo más natural del mundo y nos animamos a hacerlo, con la esperanza de poder hacerlo más seguido en el futuro.",                                                                                                                                              icono:"✈️", foto:"img/preboda5.JPG" },
+    { fecha:"Diciembre, 2024",     titulo:"Nuestras familias",      texto:"Hicimos una gran familia que siempre ha estado a nuestro lado, apoyándonos y guiándonos por el buen camino, siendo ejemplo de amor y temor a Dios.",                                                                                                                                           icono:"👨‍👩‍👧‍👦", foto:"img/preboda6.JPG" },
+    { fecha:"Febrero, 2026",       titulo:"La propuesta",           texto:"El 14 de febrero, el amor quedó inmortalizado, se dijo el tan esperado: \"Si, acepto\", y entre lágrimas y sonrisas celebramos nuestro recorrido hacia el altar.",                                                                                                                             icono:"💍", foto:"img/preboda7.JPG" },
+    { fecha:"Mayo, 2026",          titulo:"La preboda",             texto:"Un día de fotos, risas y amor. La antesala del momento más especial.",                                                                                                                                                                                                                          icono:"📸", foto:"img/preboda1.png" },
+    { fecha:"10 de Octubre, 2026", titulo:"Nos casamos",            texto:"El día que prometemos amarnos, respetarnos y acompañarnos para siempre.",                                                                                                                                                                                                                      icono:"⛪", foto:"img/hero.jpg"     }
   ],
 
-  // ── INSTRUCCIONES (sin Confirmación — se puso Regalo) ─
+  // ── INSTRUCCIONES ────────────────────────────────────
   instrucciones: [
     { icono:"⏰", titulo:"Hora de llegada",      texto:"Te pedimos llegar 30 minutos antes de la ceremonia para que puedas ubicarte con comodidad." },
-    { icono:"👗", titulo:"Código de vestimenta", texto:"Etiqueta formal. Toca el botón para ver referencias de vestimenta en Pinterest.", tieneLink: true },
-    { icono:"🚫", titulo:"Solo adultos",         texto:"Este es un evento solo para adultos. Agradecemos tu comprensión."                           },
-    { icono:"🎁", titulo:"Regalo",               texto:"Tu presencia es nuestro mayor regalo. Si deseas obsequiarnos algo, preferimos un regalo en efectivo." }
+    { icono:"👗", titulo:"Código de vestimenta", texto:"Etiqueta formal, colores suaves. Nos reservamos el blanco para la novia y el beige para el novio. Toca el botón para ver referencias de vestimenta en Pinterest.", tieneLink: true },
+    { icono:"🚫", titulo:"Solo adultos",         texto:"Esperamos compartir una celebración pensada exclusivamente para adultos. Para una mejor organización del evento, agradecemos respetar que la invitación sea únicamente para las personas señaladas." },
+    { icono:"🎁", titulo:"Regalos",              texto:"Tu presencia es el mejor regalo en este día especial; cualquier otro detalle será una contribución para nuestro hogar y futuros sueños." }
   ],
 
+  // ── TÍTULOS SECCIÓN HISTORIA ─────────────────────────
+  historiaTitulo:    "UNA PROMESA DE AMOR",
+  historiaSubtitulo: "La historia que hoy queremos celebrar junto a ustedes.",
+
   historiaTextos: [
-    "Desde el primer momento supimos que algo especial comenzaba. Cada día juntos ha sido un regalo que atesoramos profundamente.",
-    "Compartimos sueños, risas y caminos. Hoy queremos que seas parte del día más importante de nuestras vidas.",
-    "Porque el amor verdadero no es perfecto, es real. Y el nuestro ha crecido día a día, paso a paso, juntos."
+    "Con la bendición de Dios y de nuestros padres, hemos decidido dar un paso más en esta hermosa historia que comenzó hace tres años, cuando supimos que algo especial nacía entre nosotros. Desde entonces, cada momento compartido ha sido un regalo; nuestro amor ha crecido día a día, al igual que nuestro deseo de caminar juntos por la vida.",
+    "Hoy, con el corazón lleno de alegría e ilusión, queremos que seas testigo y parte del día más importante de nuestras vidas, compartiendo este momento tan especial junto a las personas que más amamos.",
+    "\"Así que no son ya más dos, sino una sola carne; por tanto, lo que Dios juntó, no lo separe el hombre.\" Mateo 19:6"
   ],
 
   rsvp: { descripcion: "Nos encantaría contar con tu presencia. Por favor confírmanos antes del 01 de septiembre de 2026." },
@@ -107,6 +102,7 @@ window.BODA_CONFIG = {
 
   // ⏱️ Segundos de espera después de que termine el video (cámbialo a lo que quieras)
   videoDelay: 0,
+
   audio: { musica: "audio/musica.mp3", mensajeVoz: "audio/mensaje.mp3" },
 
   fotos: {
