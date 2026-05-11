@@ -28,8 +28,10 @@ function applyConfig() {
   // Evento
   set('eventDate',  C.evento.fechaTexto);
   set('eventTime',  C.evento.hora);
-  set('eventVenue', C.evento.lugar);
-  set('venueName',  C.evento.lugar);
+  // venueName = nombre del salon, eventVenue = dirección
+  // Ambos están fijos en el HTML — solo actualizamos la dirección
+  set('venueName',  'Valletal Eventos');
+  set('eventVenue', 'Cerro Grande, Valle de Ángeles');
 
   // Versículo
   const bq = $('verseText');
@@ -44,6 +46,22 @@ function applyConfig() {
   if(C.historiaTitulo)    set('historiaTituloEl',    C.historiaTitulo);
   if(C.historiaSubtitulo) set('historiaSubtituloEl', C.historiaSubtitulo);
   ['story1','story2','story3'].forEach((id,i) => set(id, C.historiaTextos[i]||''));
+
+  // Libro de firmas — etiquetas desde config
+  if(C.libroFirmas.titulo)       set('bookTituloEl',    C.libroFirmas.titulo);
+  if(C.libroFirmas.subtitulo)    set('bookSubtituloEl', C.libroFirmas.subtitulo);
+  if(C.libroFirmas.descripcion)  set('bookDescEl',      C.libroFirmas.descripcion);
+
+  // Vestimenta section
+  if(C.vestimentaSeccion) {
+    set('vestTituloLabel', C.vestimentaSeccion.titulo);
+    set('vestTitulo',      C.vestimentaSeccion.subtitulo);
+    set('vestTexto',       C.vestimentaSeccion.texto);
+    const vl = document.getElementById('vestPinterest');
+    if(vl) vl.href = C.vestimentaSeccion.pinterestUrl;
+    const vi = document.getElementById('vestImagen');
+    if(vi) vi.src = C.vestimentaSeccion.imagen;
+  }
 
   // RSVP
   set('rsvpDesc', C.rsvp.descripcion);
