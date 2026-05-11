@@ -203,11 +203,11 @@ function initVideo() {
   // El delay en segundos viene del config — fácil de cambiar
   const delayMs    = (C.videoDelay || 2) * 1000;
 
+  const tapMsg    = $('videoTapMsg');
   let playStarted  = false;
   let skipShown    = false;
 
-  // El video se ve desde el inicio pausado — sin overlay ni mensaje
-  // Al tocar cualquier parte de la pantalla → empieza con sonido
+  // Al tocar cualquier parte de la pantalla → ocultar mensaje y reproducir
   screen.addEventListener('click', () => {
     if(!playStarted) startVideo();
   });
@@ -215,9 +215,13 @@ function initVideo() {
   function startVideo() {
     if(playStarted) return;
     playStarted = true;
+    // Ocultar mensaje de toque elegantemente
+    if(tapMsg) {
+      tapMsg.classList.add('hiding');
+      setTimeout(() => tapMsg.classList.add('gone'), 700);
+    }
     videoEl.volume = 1;
     videoEl.play().catch(() => {
-      // Navegador bloqueó audio → reproducir sin sonido igualmente
       videoEl.muted = true;
       videoEl.play().catch(() => openInvitation());
     });
