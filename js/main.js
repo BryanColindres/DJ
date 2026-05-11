@@ -40,7 +40,9 @@ function applyConfig() {
   href('mapsBtn', C.evento.mapsUrl);
   href('wazeBtn', C.evento.wazeUrl);
 
-  // Historia
+  // Historia — título, subtítulo y textos
+  if(C.historiaTitulo)    set('historiaTituloEl',    C.historiaTitulo);
+  if(C.historiaSubtitulo) set('historiaSubtituloEl', C.historiaSubtitulo);
   ['story1','story2','story3'].forEach((id,i) => set(id, C.historiaTextos[i]||''));
 
   // RSVP
