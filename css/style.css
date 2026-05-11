@@ -312,20 +312,28 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
 .book-privacy__label input:checked + .book-privacy__check::after{content:'✓';color:white;font-size:.6rem}
 .book-submit{width:100%;padding:.8rem;background:var(--rose-deep);color:var(--white);border:none;border-radius:12px;font-family:var(--font-b);font-size:.82rem;letter-spacing:.12em;cursor:pointer;transition:all .3s var(--ease);margin-top:auto}
 .book-submit:hover{background:var(--rose-mid);transform:translateY(-1px);box-shadow:0 4px 16px rgba(155,107,107,.3)}
-.book-entries{flex:1;overflow-y:auto;padding-right:.25rem}
+.book-entries{flex:1;overflow:hidden;display:flex;flex-direction:column}
 .book-entries::-webkit-scrollbar{width:3px}
 .book-entries::-webkit-scrollbar-thumb{background:var(--blush);border-radius:2px}
-.book-entry{padding:.85rem 0;border-bottom:1px solid rgba(196,144,122,.2);display:flex;gap:.75rem;align-items:flex-start}
-.book-entry:last-child{border-bottom:none}
-.book-entry__photo{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
-.book-entry__photo img{width:100%;height:100%;object-fit:cover}
-.book-entry__body{flex:1;min-width:0}
-.book-entry__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem}
-.book-entry__name{font-family:var(--font-d);font-size:1rem;color:var(--rose-deep)}
-.book-entry__emoji{font-size:1rem}
-.book-entry__msg{font-family:var(--font-d);font-style:italic;font-size:.9rem;line-height:1.6;color:var(--text-mid)}
-.book-entry__date{font-size:.65rem;color:var(--text-light);margin-top:.25rem}
 .book-entries__empty{font-family:var(--font-d);font-style:italic;color:var(--text-light);text-align:center;padding:2rem 0;font-size:1rem}
+
+/* Tarjeta de una sola entrada — ocupa toda la página derecha */
+.book-entry-card{display:flex;flex-direction:column;height:100%;gap:.75rem}
+.book-entry-card__top{flex-shrink:0}
+.book-entry-card__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.book-entry-card__name{font-family:var(--font-d);font-size:1.2rem;color:var(--rose-deep);font-weight:400}
+.book-entry-card__emoji{font-size:1.3rem}
+.book-entry-card__line{height:1px;background:linear-gradient(to right,var(--rose-soft),transparent);margin:.4rem 0 .6rem;opacity:.5}
+.book-entry-card__msg{font-family:var(--font-d);font-style:italic;font-size:1rem;line-height:1.65;color:var(--text-mid)}
+.book-entry-card__date{font-size:.65rem;color:var(--text-light);margin-top:.4rem;letter-spacing:.05em}
+
+/* Foto grande al fondo — prioridad visual */
+.book-entry-card__photo{flex:1;min-height:0;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(58,42,42,.15)}
+.book-entry-card__photo img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* Sin foto — emoji grande decorativo */
+.book-entry-card__no-photo{flex:1;min-height:80px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--cream),var(--blush));border-radius:14px;opacity:.6}
+.book-entry-card__big-emoji{font-size:3.5rem}
 .book-nav{display:flex;align-items:center;justify-content:space-between;padding-top:.75rem;border-top:1px solid var(--blush);margin-top:.75rem}
 .book-nav__btn{background:none;border:1px solid var(--blush);color:var(--rose-deep);padding:.35rem .9rem;border-radius:20px;font-size:.75rem;cursor:pointer;transition:all .2s}
 .book-nav__btn:hover{background:var(--blush)}
