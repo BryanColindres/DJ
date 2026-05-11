@@ -394,7 +394,8 @@ function initBook() {
     if(bookPage>0){ bookPage--; renderEntries(airtableCache); }
   });
   if(nextB) nextB.addEventListener('click',()=>{
-    if((bookPage+1)*PER_PAGE<airtableCache.length){ bookPage++; renderEntries(airtableCache); }
+    // Ahora es 1 entrada por página
+    if(bookPage+1 < airtableCache.length){ bookPage++; renderEntries(airtableCache); }
   });
 
   // Cargar mensajes desde Airtable al iniciar
@@ -492,28 +493,46 @@ function renderEntries(entries) {
     container.innerHTML='<p class="book-entries__empty">Los mensajes aparecerán aquí 🌹</p>';
     if(navEl) navEl.style.display='none'; return;
   }
-  const total=Math.ceil(entries.length/PER_PAGE);
-  const start=bookPage*PER_PAGE;
-  const page=entries.slice(start,start+PER_PAGE);
-  container.innerHTML=page.map(e=>{
-    const photoHtml = e.fotoUrl&&e.fotoUrl!=='_local_'&&e.fotoUrl!==''
-      ? `<img src="${e.fotoUrl}" alt="${e.nombre}"/>`
-      : `<span>${e.emoji}</span>`;
-    return `<div class="book-entry">
-      <div class="book-entry__photo">${photoHtml}</div>
-      <div class="book-entry__body">
-        <div class="book-entry__header">
-          <span class="book-entry__name">${e.nombre}</span>
-          <span class="book-entry__emoji">${e.emoji}</span>
+
+  // Ordenar: primero los que tienen foto, luego los que no
+  const sorted = [...entries].sort((a,b)=>{
+    const aHas = a.fotoUrl&&a.fotoUrl!=='_local_'&&a.fotoUrl!=='';
+    const bHas = b.fotoUrl&&b.fotoUrl!=='_local_'&&b.fotoUrl!=='';
+    if(aHas&&!bHas) return -1;
+    if(!aHas&&bHas) return 1;
+    return 0;
+  });
+
+  // Una sola entrada por "página" en la hoja derecha del libro
+  const total = sorted.length;
+  const e = sorted[bookPage] || sorted[0];
+
+  const hasPhoto = e.fotoUrl && e.fotoUrl!=='_local_' && e.fotoUrl!=='';
+
+  container.innerHTML = `
+    <div class="book-entry-card">
+      <div class="book-entry-card__top">
+        <div class="book-entry-card__header">
+          <span class="book-entry-card__name">${e.nombre}</span>
+          <span class="book-entry-card__emoji">${e.emoji}</span>
         </div>
-        <p class="book-entry__msg">"${e.mensaje}"</p>
-        <p class="book-entry__date">${e.fecha}</p>
+        <div class="book-entry-card__line"></div>
+        <p class="book-entry-card__msg">"${e.mensaje}"</p>
+        <p class="book-entry-card__date">${e.fecha}</p>
       </div>
+      ${hasPhoto
+        ? `<div class="book-entry-card__photo">
+             <img src="${e.fotoUrl}" alt="${e.nombre}"/>
+           </div>`
+        : `<div class="book-entry-card__no-photo">
+             <span class="book-entry-card__big-emoji">${e.emoji}</span>
+           </div>`
+      }
     </div>`;
-  }).join('');
+
   if(navEl){
-    navEl.style.display=total>1?'flex':'none';
-    $('bookPageNum').textContent=`${bookPage+1} / ${total}`;
+    navEl.style.display = total>1 ? 'flex' : 'none';
+    $('bookPageNum').textContent = `${bookPage+1} / ${total}`;
   }
 }
 
