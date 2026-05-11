@@ -70,7 +70,7 @@ window.BODA_CONFIG = {
     texto:     "Nos reservamos el blanco para la novia y el beige para el novio. Los invitamos a usar tonos cálidos y elegantes que armonicen con la paleta de la celebración.",
     pinterestUrl:   "https://pin.it/7ask6Yvrq",
     pinterestLabel: "Ver referencias en Pinterest",
-    imagen:    "img/paleta-colores1.png"
+    imagen:    ""
   },
 
   // ── TÍTULOS SECCIÓN HISTORIA ─────────────────────────
