@@ -375,18 +375,74 @@ let bookPage = 0;
 const PER_PAGE = 4;
 let uploadedPhotoUrl = '';
 
-// ── Animación vuelta de página del libro ──────────────
+// ── Animación vuelta de página — efecto papel suave ───
 function turnPage(direction, callback) {
   const container = document.getElementById('bookEntries');
   if(!container) { callback(); return; }
-  const cls = direction === 'next' ? 'page-turn-next' : 'page-turn-prev';
-  container.classList.add(cls);
+
+  // Crear el "flap" — hoja que se dobla encima
+  const flap = document.createElement('div');
+  flap.className = 'page-flap';
+  flap.style.cssText = `
+    position:absolute; inset:0; z-index:5;
+    background: linear-gradient(170deg, #FDF6EF 0%, #F0E4D5 100%);
+    border-radius:4px;
+    transform-origin: ${direction === 'next' ? 'left' : 'right'} center;
+    transform: perspective(1000px) rotateY(0deg);
+    box-shadow: ${direction === 'next' ? '-4px' : '4px'} 0 16px rgba(58,42,42,.12);
+    pointer-events:none;
+    transition: transform 0.55s cubic-bezier(0.645,0.045,0.355,1.000),
+                box-shadow 0.55s ease,
+                opacity 0.1s ease 0.45s;
+  `;
+  // Añadir gradiente de sombra al doblar
+  const shadow = document.createElement('div');
+  shadow.style.cssText = `
+    position:absolute; inset:0; border-radius:4px;
+    background: linear-gradient(${direction==='next'?'to right':'to left'},
+      rgba(58,42,42,0) 60%, rgba(58,42,42,0.18) 100%);
+    pointer-events:none;
+  `;
+  flap.appendChild(shadow);
+
+  const bookPage = container.closest('.book-page--right');
+  if(bookPage) {
+    bookPage.style.position = 'relative';
+    bookPage.appendChild(flap);
+  }
+
+  // Disparar la animación al siguiente frame
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const angle = direction === 'next' ? -175 : 175;
+      flap.style.transform = `perspective(1000px) rotateY(${angle}deg)`;
+      flap.style.boxShadow = 'none';
+      flap.style.opacity = '0';
+    });
+  });
+
+  // Mitad de la animación: cambiar contenido
   setTimeout(() => {
     callback();
-    container.classList.remove(cls);
-    container.classList.add('page-turn-in');
-    setTimeout(() => container.classList.remove('page-turn-in'), 400);
-  }, 350);
+    // Fade in del nuevo contenido
+    container.style.opacity = '0';
+    container.style.transform = `translateX(${direction==='next'?'12px':'-12px'})`;
+    requestAnimationFrame(() => {
+      container.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      container.style.opacity = '1';
+      container.style.transform = 'translateX(0)';
+      setTimeout(() => {
+        container.style.transition = '';
+        container.style.transform = '';
+      }, 320);
+    });
+  }, 280);
+
+  // Limpiar el flap
+  setTimeout(() => {
+    flap.remove();
+    if(bookPage) bookPage.style.position = '';
+  }, 600);
 }
 
 function initBook() {
@@ -657,13 +713,23 @@ function initAutoNudge() {
       observer.disconnect();
       setTimeout(() => {
         if(window.scrollY > 10) return; // ya scrolleó solo
-        // Primer mini nudge
-        window.scrollBy({ top: 55, behavior: 'smooth' });
+        // Nudge 1: baja
+        window.scrollBy({ top: 80, behavior: 'smooth' });
         setTimeout(() => {
-          if(window.scrollY > 80) return;
-          // Segundo mini nudge — vuelve arriba suave
-          window.scrollBy({ top: -55, behavior: 'smooth' });
-        }, 700);
+          if(window.scrollY > 100) return;
+          // Nudge 2: sube
+          window.scrollBy({ top: -80, behavior: 'smooth' });
+          setTimeout(() => {
+            if(window.scrollY > 20) return;
+            // Nudge 3: baja de nuevo más pronunciado
+            window.scrollBy({ top: 90, behavior: 'smooth' });
+            setTimeout(() => {
+              if(window.scrollY > 120) return;
+              // Nudge 4: vuelve arriba
+              window.scrollBy({ top: -90, behavior: 'smooth' });
+            }, 650);
+          }, 650);
+        }, 650);
       }, 1500);
     }
   });
@@ -697,19 +763,33 @@ function initVestModal() {
   // Cerrar con Escape
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape') {
-      document.getElementById('vestModal')?.classList.remove('open');
+      window.closeVestModal();
       document.getElementById('vestImgModal')?.classList.remove('open');
     }
   });
   // Cerrar tocando el fondo
   document.getElementById('vestModal')?.addEventListener('click', e => {
-    if(e.target.id === 'vestModal') e.target.classList.remove('open');
+    if(e.target.id === 'vestModal') window.closeVestModal();
   });
 }
 
 window.openVestModal = function() {
   const m = document.getElementById('vestModal');
-  if(m) { m.classList.add('open'); m.scrollTop = 0; }
+  if(!m) return;
+  m.classList.add('open');
+  m.scrollTop = 0;
+  // Bloquear scroll del body mientras el modal está abierto
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+};
+
+window.closeVestModal = function() {
+  const m = document.getElementById('vestModal');
+  if(m) m.classList.remove('open');
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
 };
 
 // Lightbox dentro del modal

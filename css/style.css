@@ -690,14 +690,20 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
 
 /* ══ MODAL VESTIMENTA ══════════════════════════════════ */
 .vest-modal {
-  position: fixed; inset: 0; z-index: 1500;
-  background: rgba(20,10,10,.7);
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 1500;
+  background: rgba(20,10,10,.75);
   backdrop-filter: blur(6px);
-  display: flex; align-items: flex-start; justify-content: center;
   opacity: 0; pointer-events: none;
   transition: opacity .35s var(--ease);
+  /* Scroll propio — independiente del body */
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   padding: 1.5rem 1rem 3rem;
+  /* Asegurar que empiece desde arriba */
+  display: block;
 }
 .vest-modal.open {
   opacity: 1; pointer-events: all;
@@ -706,10 +712,10 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
   background: var(--white);
   border-radius: 24px;
   width: 100%; max-width: 860px;
+  margin: 0 auto;
   position: relative;
   box-shadow: 0 24px 60px rgba(0,0,0,.35);
   overflow: hidden;
-  margin-top: 1rem;
   animation: none;
 }
 .vest-modal.open .vest-modal__box {
@@ -775,24 +781,8 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
 .vest-divider span { flex:1; height:1px; background: var(--blush); }
 .vest-divider svg { width:1.5rem; height:.75rem; fill:var(--rose-soft); flex-shrink:0; }
 
-/* ══ ANIMACIÓN VUELTA DE PÁGINA ════════════════════════ */
-@keyframes pageTurnNext {
-  0%   { transform: perspective(1200px) rotateY(0deg);   opacity: 1; }
-  50%  { transform: perspective(1200px) rotateY(-90deg); opacity: .3; }
-  100% { transform: perspective(1200px) rotateY(-90deg); opacity: 0; }
-}
-@keyframes pageTurnPrev {
-  0%   { transform: perspective(1200px) rotateY(0deg);  opacity: 1; }
-  50%  { transform: perspective(1200px) rotateY(90deg); opacity: .3; }
-  100% { transform: perspective(1200px) rotateY(90deg); opacity: 0; }
-}
-@keyframes pageTurnIn {
-  0%   { transform: perspective(1200px) rotateY(90deg);  opacity: 0; }
-  100% { transform: perspective(1200px) rotateY(0deg);   opacity: 1; }
-}
-.book-entries.page-turn-next { animation: pageTurnNext .35s ease-in forwards; transform-origin: left center; }
-.book-entries.page-turn-prev { animation: pageTurnPrev .35s ease-in forwards; transform-origin: right center; }
-.book-entries.page-turn-in   { animation: pageTurnIn  .4s ease-out forwards; transform-origin: left center; }
+/* ══ ANIMACIÓN PÁGINA — manejada por JS (paper flip) ═ */
+/* El efecto está en el JS con el elemento .page-flap */
 
 @media(max-width:580px) {
   .vest-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
