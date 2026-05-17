@@ -414,6 +414,8 @@ function buildFlipBook(entries) {
     const page = document.createElement('div');
     page.className = 'stpf-page';
     const hasPhoto = e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '';
+    // Altura de la foto = 60% de la altura de la página si hay foto
+    const photoH = hasPhoto ? Math.floor(H * 0.58) : 0;
     page.innerHTML = `
       <div class="stpf-page__inner">
         <div class="stpf-page__header">
@@ -423,7 +425,7 @@ function buildFlipBook(entries) {
         <div class="stpf-page__line"></div>
         <p class="stpf-page__msg">"${e.mensaje}"</p>
         <p class="stpf-page__date">${e.fecha}</p>
-        ${hasPhoto ? `<div class="stpf-page__photo"><img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy"/></div>` : ''}
+        ${hasPhoto ? `<div class="stpf-page__photo" style="height:${photoH}px"><img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy"/></div>` : ''}
         <span class="stpf-page__num">${i + 1}</span>
       </div>`;
     flipCont.appendChild(page);
