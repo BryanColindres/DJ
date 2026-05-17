@@ -838,28 +838,33 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
 .stpf-page__msg {
   font-family: var(--font-d);
   font-style: italic;
-  font-size: .9rem;
-  line-height: 1.6;
+  font-size: .88rem;
+  line-height: 1.55;
   color: var(--text-mid);
-  flex: 1;
+  /* No flex:1 para que la foto tenga más espacio */
+  flex: 0 1 auto;
+  max-height: 4.5em;
+  overflow: hidden;
 }
 .stpf-page__date {
   font-size: .62rem;
   color: var(--text-light);
-  margin-top: .4rem;
+  margin-top: .35rem;
   letter-spacing: .04em;
+  flex-shrink: 0;
 }
 .stpf-page__photo {
   margin-top: .6rem;
   border-radius: 10px;
   overflow: hidden;
-  flex-shrink: 0;
-  height: 110px;
+  flex: 1;          /* Ocupa todo el espacio restante */
+  min-height: 80px;
 }
 .stpf-page__photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 .stpf-page__num {
   position: absolute;
