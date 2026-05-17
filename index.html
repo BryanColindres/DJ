@@ -385,36 +385,36 @@
     <button class="lb-nav lb-next" id="lbNext">›</button>
   </div>
 
-  <!-- ── MODAL VESTIMENTA ── -->
-  <div class="vest-modal" id="vestModal">
-    <div class="vest-modal__box">
-      <button class="vest-modal__close" onclick="closeVestModal()">✕</button>
-      <div class="vest-modal__content">
-        <div class="vest-section">
-          <h3 class="vest-section__title">
-            <span class="vest-section__icon">👔</span>
-            Vestimenta para Caballeros
-          </h3>
-          <p class="vest-section__sub">Etiqueta formal · Tonos cálidos · Evitar beige</p>
-          <div class="vest-grid" id="vestGridHombres"></div>
-        </div>
-        <div class="vest-divider">
-          <span></span><svg viewBox="0 0 40 20"><path d="M20 2C14 10 8 10 8 10C14 10 20 18 20 18C20 18 26 10 32 10C26 10 20 2 20 2Z" fill="currentColor"/></svg><span></span>
-        </div>
-        <div class="vest-section">
-          <h3 class="vest-section__title">
-            <span class="vest-section__icon">👗</span>
-            Vestimenta para Damas
-          </h3>
-          <p class="vest-section__sub">Etiqueta formal · Tonos cálidos · Evitar blanco</p>
-          <div class="vest-grid" id="vestGridDamas"></div>
-        </div>
+  <div class="admin-trigger" id="adminTrigger"></div>
+</div><!-- /invitation -->
+
+<!-- MODAL FUERA de .invitation para evitar que transform del padre lo atrape -->
+<div class="vest-modal" id="vestModal">
+  <div class="vest-modal__box">
+    <button class="vest-modal__close" onclick="closeVestModal()">✕</button>
+    <div class="vest-modal__content">
+      <div class="vest-section">
+        <h3 class="vest-section__title">
+          <span class="vest-section__icon">👔</span>
+          Vestimenta para Caballeros
+        </h3>
+        <p class="vest-section__sub">Etiqueta formal · Tonos cálidos · Evitar beige</p>
+        <div class="vest-grid" id="vestGridHombres"></div>
+      </div>
+      <div class="vest-divider">
+        <span></span><svg viewBox="0 0 40 20"><path d="M20 2C14 10 8 10 8 10C14 10 20 18 20 18C20 18 26 10 32 10C26 10 20 2 20 2Z" fill="currentColor"/></svg><span></span>
+      </div>
+      <div class="vest-section">
+        <h3 class="vest-section__title">
+          <span class="vest-section__icon">👗</span>
+          Vestimenta para Damas
+        </h3>
+        <p class="vest-section__sub">Etiqueta formal · Tonos cálidos · Evitar blanco</p>
+        <div class="vest-grid" id="vestGridDamas"></div>
       </div>
     </div>
   </div>
-
-  <div class="admin-trigger" id="adminTrigger"></div>
-</div><!-- /invitation -->
+</div>
 
 <script src="js/config.js"></script>
 <script src="js/main.js"></script>
