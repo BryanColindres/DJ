@@ -776,27 +776,23 @@ let _vestScrollY = 0;
 window.openVestModal = function() {
   const m = document.getElementById('vestModal');
   if(!m) return;
-  // Guardar posición del scroll ANTES de fijar el body
+  // Guardar scroll y bloquear SOLO con overflow — sin position:fixed
+  // para que el modal position:fixed siga siendo visible
   _vestScrollY = window.scrollY || window.pageYOffset;
-  document.body.style.position = 'fixed';
-  document.body.style.top      = `-${_vestScrollY}px`;
-  document.body.style.left     = '0';
-  document.body.style.right    = '0';
+  document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
   m.scrollTop = 0;
   m.classList.add('open');
 };
 
 window.closeVestModal = function() {
-  // Restaurar el body a la misma posición
-  document.body.style.position = '';
-  document.body.style.top      = '';
-  document.body.style.left     = '';
-  document.body.style.right    = '';
+  // Restaurar scroll y regresar a la misma posición
+  document.documentElement.style.overflow = '';
   document.body.style.overflow = '';
-  window.scrollTo({ top: _vestScrollY, behavior: 'instant' });
   const m = document.getElementById('vestModal');
   if(m) m.classList.remove('open');
+  // Regresar exactamente donde estaba sin parpadeo
+  window.scrollTo({ top: _vestScrollY, behavior: 'instant' });
 };
 
 // Lightbox dentro del modal
