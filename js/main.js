@@ -105,14 +105,22 @@ function applyConfig() {
     set('rsvpPersonalMsg',    C.invitacionPersonal.mensaje);
     set('rsvpPersonalNombre', GUEST);
     set('rsvpPersonalNota',   C.invitacionPersonal.nota);
-    // WhatsApp personalizado
+    // WhatsApp personalizado — dos botones
     const msg = C.whatsapp.mensaje.replace('{nombre}', GUEST);
-    href('whatsappBtn', `https://wa.me/${C.whatsapp.numero}?text=${encodeURIComponent(msg)}`);
+    setWAButtons(msg);
   } else {
     // WhatsApp genérico
     const msg = C.whatsapp.mensaje.replace('{nombre}', 'Invitado');
-    href('whatsappBtn', `https://wa.me/${C.whatsapp.numero}?text=${encodeURIComponent(msg)}`);
+    setWAButtons(msg);
   }
+}
+
+function setWAButtons(msg) {
+  const encoded = encodeURIComponent(msg);
+  const btnNovio = document.getElementById('whatsappBtnNovio');
+  const btnNovia = document.getElementById('whatsappBtnNovia');
+  if(btnNovio) btnNovio.href = `https://wa.me/50431626792?text=${encoded}`;
+  if(btnNovia) btnNovia.href = `https://wa.me/50499223790?text=${encoded}`;
 
   // Colores
   const r = document.documentElement.style;
@@ -367,6 +375,20 @@ let bookPage = 0;
 const PER_PAGE = 4;
 let uploadedPhotoUrl = '';
 
+// ── Animación vuelta de página del libro ──────────────
+function turnPage(direction, callback) {
+  const container = document.getElementById('bookEntries');
+  if(!container) { callback(); return; }
+  const cls = direction === 'next' ? 'page-turn-next' : 'page-turn-prev';
+  container.classList.add(cls);
+  setTimeout(() => {
+    callback();
+    container.classList.remove(cls);
+    container.classList.add('page-turn-in');
+    setTimeout(() => container.classList.remove('page-turn-in'), 400);
+  }, 350);
+}
+
 function initBook() {
   document.querySelectorAll('.book-emoji').forEach(btn => {
     btn.addEventListener('click',()=>{
@@ -414,11 +436,10 @@ function initBook() {
 
   const prevB=$('bookPrev'), nextB=$('bookNext');
   if(prevB) prevB.addEventListener('click',()=>{
-    if(bookPage>0){ bookPage--; renderEntries(airtableCache); }
+    if(bookPage>0){ turnPage('prev', ()=>{ bookPage--; renderEntries(airtableCache); }); }
   });
   if(nextB) nextB.addEventListener('click',()=>{
-    // Ahora es 1 entrada por página
-    if(bookPage+1 < airtableCache.length){ bookPage++; renderEntries(airtableCache); }
+    if(bookPage+1 < airtableCache.length){ turnPage('next', ()=>{ bookPage++; renderEntries(airtableCache); }); }
   });
 
   // Cargar mensajes desde Airtable al iniciar
@@ -622,4 +643,91 @@ document.addEventListener('DOMContentLoaded', () => {
   initMusic();
   initVoice();
   initBook();
+  initVestModal();
+  initAutoNudge();
 });
+
+// ── Auto-nudge scroll (2 mini scrolls después de 1.5s) ─
+function initAutoNudge() {
+  // Solo cuando la invitación sea visible y el usuario no haya hecho scroll
+  const inv = document.getElementById('invitation');
+  if(!inv) return;
+  const observer = new MutationObserver(() => {
+    if(inv.classList.contains('visible')) {
+      observer.disconnect();
+      setTimeout(() => {
+        if(window.scrollY > 10) return; // ya scrolleó solo
+        // Primer mini nudge
+        window.scrollBy({ top: 55, behavior: 'smooth' });
+        setTimeout(() => {
+          if(window.scrollY > 80) return;
+          // Segundo mini nudge — vuelve arriba suave
+          window.scrollBy({ top: -55, behavior: 'smooth' });
+        }, 700);
+      }, 1500);
+    }
+  });
+  observer.observe(inv, { attributes: true, attributeFilter: ['class'] });
+}
+
+// ══════════════════════════════════════════════════════
+//  MODAL VESTIMENTA
+// ══════════════════════════════════════════════════════
+
+// Definir cuáles fotos son de hombres y cuáles de mujeres
+// NOTA: las primeras 8 = hombres, las siguientes 8 = mujeres
+// Ajusta este número cuando Bryan confirme la división
+const VEST_HOMBRES_COUNT = 8;
+
+function initVestModal() {
+  // Generar las imágenes en los grids
+  const total = 16;
+  const gridH = document.getElementById('vestGridHombres');
+  const gridD = document.getElementById('vestGridDamas');
+  if(!gridH || !gridD) return;
+
+  for(let i = 1; i <= total; i++) {
+    const img = document.createElement('div');
+    img.className = 'vest-grid__item';
+    img.innerHTML = `<img src="img/vestimenta/v${i}.jpg" alt="Referencia ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
+    if(i <= VEST_HOMBRES_COUNT) gridH.appendChild(img);
+    else gridD.appendChild(img);
+  }
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') {
+      document.getElementById('vestModal')?.classList.remove('open');
+      document.getElementById('vestImgModal')?.classList.remove('open');
+    }
+  });
+  // Cerrar tocando el fondo
+  document.getElementById('vestModal')?.addEventListener('click', e => {
+    if(e.target.id === 'vestModal') e.target.classList.remove('open');
+  });
+}
+
+window.openVestModal = function() {
+  const m = document.getElementById('vestModal');
+  if(m) { m.classList.add('open'); m.scrollTop = 0; }
+};
+
+// Lightbox dentro del modal
+window.openVestImg = function(src) {
+  let lb = document.getElementById('vestImgModal');
+  if(!lb) {
+    lb = document.createElement('div');
+    lb.id = 'vestImgModal';
+    lb.style.cssText = 'position:fixed;inset:0;background:rgba(10,5,5,.95);z-index:3000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;cursor:pointer';
+    lb.innerHTML = '<img style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px"/>';
+    lb.onclick = () => lb.classList.remove('open');
+    document.body.appendChild(lb);
+  }
+  lb.querySelector('img').src = src;
+  lb.classList.add('open');
+  setTimeout(() => lb.style.opacity = '1', 10);
+};
+// Hacer toggle de clase con opacity
+const vestImgStyle = document.createElement('style');
+vestImgStyle.textContent = '#vestImgModal.open{opacity:1!important;pointer-events:all}#vestImgModal:not(.open){opacity:0!important;pointer-events:none}';
+document.head.appendChild(vestImgStyle);

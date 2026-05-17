@@ -59,7 +59,7 @@ window.BODA_CONFIG = {
   // ── INSTRUCCIONES ────────────────────────────────────
   instrucciones: [
     { icono:"⏰", titulo:"Hora de llegada",      texto:"Te pedimos llegar 30 minutos antes de la ceremonia para que puedas ubicarte con comodidad." },
-    { icono:"🚫", titulo:"Solo adultos",         texto:"Esperamos compartir una celebración pensada exclusivamente para adultos. Para una mejor organización del evento, agradecemos respetar que la invitación es únicamente para las personas señaladas." },
+    { icono:"🌸", titulo:"Solo adultos",         texto:"Esperamos compartir una celebración pensada exclusivamente para adultos. Para una mejor organización del evento, agradecemos respetar que la invitación es únicamente para las personas señaladas." },
     { icono:"🎁", titulo:"Regalos",              texto:"Tu presencia es el mejor regalo en este día especial; cualquier otro detalle será una contribución para nuestro hogar y futuros sueños." }
   ],
 
