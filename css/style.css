@@ -788,3 +788,92 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
   .vest-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
   .vest-modal__content { padding: .5rem 1rem 2rem; }
 }
+
+/* ══ STPAGEFLIP — libro de firmas realista ═════════════ */
+.book-flip-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+#bookFlipContainer {
+  /* Tamaño fijado por JS según el contenedor */
+}
+
+/* Cada página del flipbook */
+.stpf-page {
+  background: linear-gradient(160deg, #FFFAF7 0%, #F7EFE8 100%);
+  overflow: hidden;
+}
+.stpf-page__inner {
+  padding: 1.2rem 1.25rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.stpf-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .4rem;
+}
+.stpf-page__name {
+  font-family: var(--font-d);
+  font-size: 1.05rem;
+  color: var(--rose-deep);
+  font-weight: 400;
+}
+.stpf-page__emoji { font-size: 1.1rem; }
+.stpf-page__line {
+  height: 1px;
+  background: linear-gradient(to right, var(--rose-soft), transparent);
+  margin: .4rem 0 .6rem;
+  opacity: .5;
+}
+.stpf-page__msg {
+  font-family: var(--font-d);
+  font-style: italic;
+  font-size: .9rem;
+  line-height: 1.6;
+  color: var(--text-mid);
+  flex: 1;
+}
+.stpf-page__date {
+  font-size: .62rem;
+  color: var(--text-light);
+  margin-top: .4rem;
+  letter-spacing: .04em;
+}
+.stpf-page__photo {
+  margin-top: .6rem;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  height: 110px;
+}
+.stpf-page__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.stpf-page__num {
+  position: absolute;
+  bottom: .6rem;
+  right: .8rem;
+  font-family: var(--font-d);
+  font-size: .72rem;
+  color: var(--text-light);
+  opacity: .5;
+}
+
+/* ══ MODAL SCROLL FIX ══════════════════════════════════ */
+/* Cuando body está fixed, el modal debe tener su propio scroll */
+.vest-modal {
+  /* Sobreescribir para asegurar scroll propio */
+  overscroll-behavior: contain;
+}

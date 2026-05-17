@@ -375,74 +375,111 @@ let bookPage = 0;
 const PER_PAGE = 4;
 let uploadedPhotoUrl = '';
 
-// ── Animación vuelta de página — efecto papel suave ───
-function turnPage(direction, callback) {
-  const container = document.getElementById('bookEntries');
-  if(!container) { callback(); return; }
+// ── StPageFlip — libro de firmas realista ─────────────
+let pageFlipInstance = null;
 
-  // Crear el "flap" — hoja que se dobla encima
-  const flap = document.createElement('div');
-  flap.className = 'page-flap';
-  flap.style.cssText = `
-    position:absolute; inset:0; z-index:5;
-    background: linear-gradient(170deg, #FDF6EF 0%, #F0E4D5 100%);
-    border-radius:4px;
-    transform-origin: ${direction === 'next' ? 'left' : 'right'} center;
-    transform: perspective(1000px) rotateY(0deg);
-    box-shadow: ${direction === 'next' ? '-4px' : '4px'} 0 16px rgba(58,42,42,.12);
-    pointer-events:none;
-    transition: transform 0.55s cubic-bezier(0.645,0.045,0.355,1.000),
-                box-shadow 0.55s ease,
-                opacity 0.1s ease 0.45s;
-  `;
-  // Añadir gradiente de sombra al doblar
-  const shadow = document.createElement('div');
-  shadow.style.cssText = `
-    position:absolute; inset:0; border-radius:4px;
-    background: linear-gradient(${direction==='next'?'to right':'to left'},
-      rgba(58,42,42,0) 60%, rgba(58,42,42,0.18) 100%);
-    pointer-events:none;
-  `;
-  flap.appendChild(shadow);
+function buildFlipBook(entries) {
+  const wrap     = document.getElementById('bookFlipWrap');
+  const flipCont = document.getElementById('bookFlipContainer');
+  const emptyMsg = document.getElementById('bookEmptyMsg');
+  const navEl    = document.getElementById('bookNav');
+  if(!flipCont) return;
 
-  const bookPage = container.closest('.book-page--right');
-  if(bookPage) {
-    bookPage.style.position = 'relative';
-    bookPage.appendChild(flap);
+  // Destruir instancia anterior si existe
+  if(pageFlipInstance) {
+    try { pageFlipInstance.destroy(); } catch(e){}
+    pageFlipInstance = null;
+  }
+  flipCont.innerHTML = '';
+
+  if(!entries || !entries.length) {
+    if(emptyMsg) emptyMsg.style.display = 'block';
+    if(navEl) navEl.style.display = 'none';
+    return;
   }
 
-  // Disparar la animación al siguiente frame
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      const angle = direction === 'next' ? -175 : 175;
-      flap.style.transform = `perspective(1000px) rotateY(${angle}deg)`;
-      flap.style.boxShadow = 'none';
-      flap.style.opacity = '0';
-    });
+  if(emptyMsg) emptyMsg.style.display = 'none';
+
+  // Dimensiones del contenedor padre
+  const rightPage = document.getElementById('bookPageRight');
+  const rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 480 };
+  const W = Math.max(200, Math.floor(rect.width * 0.92));
+  const H = Math.max(260, Math.floor(rect.height * 0.60));
+
+  flipCont.style.width  = W + 'px';
+  flipCont.style.height = H + 'px';
+
+  // Crear una página por entrada
+  entries.forEach((e, i) => {
+    const page = document.createElement('div');
+    page.className = 'stpf-page';
+    const hasPhoto = e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '';
+    page.innerHTML = `
+      <div class="stpf-page__inner">
+        <div class="stpf-page__header">
+          <span class="stpf-page__name">${e.nombre}</span>
+          <span class="stpf-page__emoji">${e.emoji}</span>
+        </div>
+        <div class="stpf-page__line"></div>
+        <p class="stpf-page__msg">"${e.mensaje}"</p>
+        <p class="stpf-page__date">${e.fecha}</p>
+        ${hasPhoto ? `<div class="stpf-page__photo"><img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy"/></div>` : ''}
+        <span class="stpf-page__num">${i + 1}</span>
+      </div>`;
+    flipCont.appendChild(page);
   });
 
-  // Mitad de la animación: cambiar contenido
-  setTimeout(() => {
-    callback();
-    // Fade in del nuevo contenido
-    container.style.opacity = '0';
-    container.style.transform = `translateX(${direction==='next'?'12px':'-12px'})`;
-    requestAnimationFrame(() => {
-      container.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      container.style.opacity = '1';
-      container.style.transform = 'translateX(0)';
-      setTimeout(() => {
-        container.style.transition = '';
-        container.style.transform = '';
-      }, 320);
+  // Inicializar StPageFlip
+  try {
+    pageFlipInstance = new St.PageFlip(flipCont, {
+      width:             W,
+      height:            H,
+      size:              'fixed',
+      minWidth:          150,
+      maxWidth:          W,
+      minHeight:         200,
+      maxHeight:         H,
+      flippingTime:      800,
+      usePortrait:       true,
+      autoSize:          false,
+      drawShadow:        true,
+      maxShadowOpacity:  0.4,
+      showCover:         false,
+      mobileScrollSupport: false,
+      disableFlipByClick: false,
+      useMouseEvents:    true,
     });
-  }, 280);
 
-  // Limpiar el flap
-  setTimeout(() => {
-    flap.remove();
-    if(bookPage) bookPage.style.position = '';
-  }, 600);
+    pageFlipInstance.loadFromHTML(flipCont.querySelectorAll('.stpf-page'));
+
+    pageFlipInstance.on('flip', (e) => {
+      const total = pageFlipInstance.getPageCount();
+      const cur   = pageFlipInstance.getCurrentPageIndex() + 1;
+      const numEl = document.getElementById('bookPageNum');
+      if(numEl) numEl.textContent = `${cur} / ${total}`;
+    });
+
+    // Mostrar nav
+    if(navEl) {
+      navEl.style.display = 'flex';
+      const total = entries.length;
+      const numEl = document.getElementById('bookPageNum');
+      if(numEl) numEl.textContent = `1 / ${total}`;
+    }
+
+  } catch(err) {
+    console.warn('StPageFlip error:', err);
+    // Fallback simple si la librería no cargó
+    flipCont.innerHTML = entries.map(e => `
+      <div class="book-entry">
+        <div class="book-entry__photo"><span>${e.emoji}</span></div>
+        <div class="book-entry__body">
+          <div class="book-entry__header"><span class="book-entry__name">${e.nombre}</span></div>
+          <p class="book-entry__msg">"${e.mensaje}"</p>
+          <p class="book-entry__date">${e.fecha}</p>
+        </div>
+      </div>`).join('');
+  }
 }
 
 function initBook() {
@@ -492,10 +529,10 @@ function initBook() {
 
   const prevB=$('bookPrev'), nextB=$('bookNext');
   if(prevB) prevB.addEventListener('click',()=>{
-    if(bookPage>0){ turnPage('prev', ()=>{ bookPage--; renderEntries(airtableCache); }); }
+    if(pageFlipInstance) pageFlipInstance.flipPrev();
   });
   if(nextB) nextB.addEventListener('click',()=>{
-    if(bookPage+1 < airtableCache.length){ turnPage('next', ()=>{ bookPage++; renderEntries(airtableCache); }); }
+    if(pageFlipInstance) pageFlipInstance.flipNext();
   });
 
   // Cargar mensajes desde Airtable al iniciar
@@ -587,53 +624,14 @@ function getAllEntries(){ try{return JSON.parse(localStorage.getItem(BOOK_KEY))|
 
 function renderEntries(entries) {
   if(!C.libroFirmas.mostrarMensajesPublicos) entries=[];
-  const container=$('bookEntries'), navEl=$('bookNav');
-  if(!container) return;
-  if(!entries||!entries.length){
-    container.innerHTML='<p class="book-entries__empty">Los mensajes aparecerán aquí 🌹</p>';
-    if(navEl) navEl.style.display='none'; return;
-  }
-
-  // Ordenar: primero los que tienen foto, luego los que no
-  const sorted = [...entries].sort((a,b)=>{
-    const aHas = a.fotoUrl&&a.fotoUrl!=='_local_'&&a.fotoUrl!=='';
-    const bHas = b.fotoUrl&&b.fotoUrl!=='_local_'&&b.fotoUrl!=='';
-    if(aHas&&!bHas) return -1;
-    if(!aHas&&bHas) return 1;
-    return 0;
+  // Ordenar: fotos primero
+  const sorted = [...(entries||[])].sort((a,b)=>{
+    const aH = a.fotoUrl&&a.fotoUrl!=='_local_'&&a.fotoUrl!=='';
+    const bH = b.fotoUrl&&b.fotoUrl!=='_local_'&&b.fotoUrl!=='';
+    return (aH&&!bH)?-1:((!aH&&bH)?1:0);
   });
-
-  // Una sola entrada por "página" en la hoja derecha del libro
-  const total = sorted.length;
-  const e = sorted[bookPage] || sorted[0];
-
-  const hasPhoto = e.fotoUrl && e.fotoUrl!=='_local_' && e.fotoUrl!=='';
-
-  container.innerHTML = `
-    <div class="book-entry-card">
-      <div class="book-entry-card__top">
-        <div class="book-entry-card__header">
-          <span class="book-entry-card__name">${e.nombre}</span>
-          <span class="book-entry-card__emoji">${e.emoji}</span>
-        </div>
-        <div class="book-entry-card__line"></div>
-        <p class="book-entry-card__msg">"${e.mensaje}"</p>
-        <p class="book-entry-card__date">${e.fecha}</p>
-      </div>
-      ${hasPhoto
-        ? `<div class="book-entry-card__photo">
-             <img src="${e.fotoUrl}" alt="${e.nombre}"/>
-           </div>`
-        : `<div class="book-entry-card__no-photo">
-             <span class="book-entry-card__big-emoji">${e.emoji}</span>
-           </div>`
-      }
-    </div>`;
-
-  if(navEl){
-    navEl.style.display = total>1 ? 'flex' : 'none';
-    $('bookPageNum').textContent = `${bookPage+1} / ${total}`;
-  }
+  // Usar StPageFlip
+  buildFlipBook(sorted);
 }
 
 async function saveAirtable(firma) {
@@ -773,23 +771,32 @@ function initVestModal() {
   });
 }
 
+let _vestScrollY = 0;
+
 window.openVestModal = function() {
   const m = document.getElementById('vestModal');
   if(!m) return;
-  m.classList.add('open');
-  m.scrollTop = 0;
-  // Bloquear scroll del body mientras el modal está abierto
-  document.body.style.overflow = 'hidden';
+  // Guardar posición del scroll ANTES de fijar el body
+  _vestScrollY = window.scrollY || window.pageYOffset;
   document.body.style.position = 'fixed';
-  document.body.style.width = '100%';
+  document.body.style.top      = `-${_vestScrollY}px`;
+  document.body.style.left     = '0';
+  document.body.style.right    = '0';
+  document.body.style.overflow = 'hidden';
+  m.scrollTop = 0;
+  m.classList.add('open');
 };
 
 window.closeVestModal = function() {
+  // Restaurar el body a la misma posición
+  document.body.style.position = '';
+  document.body.style.top      = '';
+  document.body.style.left     = '';
+  document.body.style.right    = '';
+  document.body.style.overflow = '';
+  window.scrollTo({ top: _vestScrollY, behavior: 'instant' });
   const m = document.getElementById('vestModal');
   if(m) m.classList.remove('open');
-  document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.width = '';
 };
 
 // Lightbox dentro del modal
