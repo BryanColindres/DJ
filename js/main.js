@@ -554,13 +554,13 @@ function initBook() {
   if(prevB) prevB.addEventListener('click', () => {
     if(!pageFlipInstance) return;
     const cur = pageFlipInstance.getCurrentPageIndex();
-    if(cur > 0) pageFlipInstance.turnToPage(cur - 1);
+    if(cur > 0) pageFlipInstance.flipPrev('bottom')//turnToPage(cur - 1);
   });
   if(nextB) nextB.addEventListener('click', () => {
     if(!pageFlipInstance) return;
     const cur   = pageFlipInstance.getCurrentPageIndex();
     const total = pageFlipInstance.getPageCount();
-    if(cur < total - 1) pageFlipInstance.turnToPage(cur + 1);
+    if(cur < total - 1) pageFlipInstance.flipNext('bottom')//turnToPage(cur + 1);
   });
 
   // Cargar mensajes desde Airtable al iniciar
