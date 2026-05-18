@@ -983,17 +983,32 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
 /* Asegurar que el wrap tiene position relative para el botón */
 .book-flip-wrap { position: relative; }
 
-/* ══ SCROLL HINT CON GIF ══════════════════════════════ */
-.scroll-hint__gif {
-  width: 52px;
-  height: 52px;
-  object-fit: contain;
-  /* Quitar fondo blanco del GIF con mix-blend-mode */
-  mix-blend-mode: multiply;
-  filter: hue-rotate(300deg) saturate(0.6) brightness(1.1);
-  opacity: .85;
+/* ══ SCROLL HINT — MANO ANIMADA CSS ══════════════════ */
+.scroll-hint__hand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  animation: handSwipe 1.8s ease-in-out infinite;
 }
-/* Ocultar el texto cuando hay GIF — el GIF ya es descriptivo */
+.scroll-hint__finger {
+  width: 28px; height: 42px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
+}
+.scroll-hint__arrow-down {
+  width: 18px; height: 14px;
+  animation: arrowFade 1.8s ease-in-out infinite;
+}
+@keyframes handSwipe {
+  0%   { transform: translateY(-6px); opacity: .5; }
+  40%  { transform: translateY(6px);  opacity: 1;  }
+  70%  { transform: translateY(10px); opacity: .7; }
+  100% { transform: translateY(-6px); opacity: .5; }
+}
+@keyframes arrowFade {
+  0%,100% { opacity: .3; }
+  40%     { opacity: 1;  }
+}
 .hero__content .scroll-hint__text {
   font-size: .6rem;
   letter-spacing: .22em;
