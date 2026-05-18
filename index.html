@@ -9,6 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+  <!-- PWA + Favicon -->
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png"/>
+  <link rel="apple-touch-icon" href="img/icon-192.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="B &amp; S 2026"/>
+  <meta name="theme-color" content="#9B6B6B"/>
 </head>
 <body>
 
@@ -56,6 +64,27 @@
 
 </div><!-- /video-screen -->
 
+<!-- ══════════════════════════════════════════════════
+     PANTALLA NOMBRE INVITADO
+══════════════════════════════════════════════════ -->
+<div class="name-screen" id="nameScreen" style="display:none">
+  <div class="name-screen__petals" id="namePetals"></div>
+  <div class="name-screen__content">
+    <div class="name-screen__deco">
+      <span></span>
+      <svg viewBox="0 0 40 20"><path d="M20 2C14 10 8 10 8 10C14 10 20 18 20 18C20 18 26 10 32 10C26 10 20 2 20 2Z" fill="currentColor"/></svg>
+      <span></span>
+    </div>
+    <p class="name-screen__pre">Esta invitación es para</p>
+    <h2 class="name-screen__name" id="nameScreenGuest"></h2>
+    <p class="name-screen__sub">Bryan &amp; Stefany · 03.10.2026</p>
+    <div class="name-screen__deco">
+      <span></span>
+      <svg viewBox="0 0 40 20"><path d="M20 2C14 10 8 10 8 10C14 10 20 18 20 18C20 18 26 10 32 10C26 10 20 2 20 2Z" fill="currentColor"/></svg>
+      <span></span>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════
      INVITACIÓN PRINCIPAL
@@ -63,8 +92,17 @@
 <div class="invitation" id="invitation">
 
   <button class="music-btn" id="musicBtn" title="Música">
-    <svg id="musicOn"  viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13M9 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"/></svg>
-    <svg id="musicOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:none"><path d="M9 18V5l12-2v13M9 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+    <!-- Altavoz con sonido (música ON) -->
+    <svg id="musicOn" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3 9v6h4l5 5V4L7 9H3z"/>
+      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" opacity=".9"/>
+      <path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77 0-4.28-2.99-7.86-7-8.77z" opacity=".7"/>
+    </svg>
+    <!-- Altavoz sin sonido / muteado (música OFF) -->
+    <svg id="musicOff" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+      <path d="M3 9v6h4l5 5V4L7 9H3z"/>
+      <path d="M19 11l-1.5-1.5-1.5 1.5-1.5-1.5L16 8l-1.5-1.5L16 5l1.5 1.5L19 5l1.5 1.5L19 8l1.5 1.5z" opacity=".8"/>
+    </svg>
   </button>
   <audio id="bgMusic" loop preload="none"></audio>
   <audio id="voiceMsg" preload="none"></audio>
@@ -90,12 +128,8 @@
       <p class="hero__date">03 · 10 · 2026</p>
       <!-- Flecha de scroll — debajo de la fecha, dentro del contenido -->
       <div class="scroll-hint" id="scrollHint">
+        <img class="scroll-hint__gif" src="img/scroll-hint.gif" alt="Desliza hacia abajo"/>
         <p class="scroll-hint__text">Desliza</p>
-        <div class="scroll-hint__arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 5v14M5 12l7 7 7-7"/>
-          </svg>
-        </div>
       </div>
     </div>
   </section>
