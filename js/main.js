@@ -425,7 +425,7 @@ function buildFlipBook(entries) {
         <div class="stpf-page__line"></div>
         <p class="stpf-page__msg">"${e.mensaje}"</p>
         <p class="stpf-page__date">${e.fecha}</p>
-        ${hasPhoto ? `<div class="stpf-page__photo" style="height:${photoH}px"><img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy"/></div>` : ''}
+        ${hasPhoto ? `<div class="stpf-page__photo" style="height:${photoH}px" onclick="openVestImg(this.querySelector('img').src)"><img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy"/></div>` : ''}
         <span class="stpf-page__num">${i + 1}</span>
       </div>`;
     flipCont.appendChild(page);
