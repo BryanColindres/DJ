@@ -888,3 +888,27 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
   /* Sobreescribir para asegurar scroll propio */
   overscroll-behavior: contain;
 }
+
+/* ══ BOTÓN ZOOM FOTO DEL LIBRO ════════════════════════ */
+.stpf-page__photo {
+  position: relative;
+}
+.stpf-zoom-btn {
+  position: absolute;
+  bottom: .5rem;
+  right: .5rem;
+  width: 2rem; height: 2rem;
+  border-radius: 50%;
+  background: rgba(255,250,247,.9);
+  border: 1.5px solid rgba(155,107,107,.3);
+  font-size: .85rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  transition: transform .2s;
+  /* Asegurar que reciba eventos táctiles */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.stpf-zoom-btn:hover { transform: scale(1.15); }
