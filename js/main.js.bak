@@ -278,49 +278,12 @@ function initVideo() {
     screen.classList.add('closing');
     setTimeout(() => {
       screen.classList.add('gone');
-      // Si hay invitado, mostrar pantalla con su nombre primero
-      if(GUEST) {
-        showNameScreen(() => {
-          invitation.classList.add('visible');
-          playMusicSoftly();
-          setTimeout(initReveal, 100);
-          initLightbox();
-        });
-      } else {
-        invitation.classList.add('visible');
-        playMusicSoftly();
-        setTimeout(initReveal, 100);
-        initLightbox();
-      }
+      invitation.classList.add('visible');
+      playMusicSoftly();
+      setTimeout(initReveal, 100);
+      initLightbox();
     }, 800);
   }
-}
-
-// ── Pantalla animada con nombre del invitado ──────────
-function showNameScreen(callback) {
-  const ns    = document.getElementById('nameScreen');
-  const nameEl = document.getElementById('nameScreenGuest');
-  if(!ns || !nameEl) { callback(); return; }
-
-  nameEl.textContent = GUEST;
-  spawnPetals('namePetals', 10);
-
-  // Mostrar con fade in
-  ns.style.display = 'flex';
-  ns.style.opacity = '0';
-  requestAnimationFrame(() => {
-    ns.style.transition = 'opacity .8s ease';
-    ns.style.opacity    = '1';
-  });
-
-  // Después de 2.8s, fade out y llamar callback
-  setTimeout(() => {
-    ns.style.opacity = '0';
-    setTimeout(() => {
-      ns.style.display = 'none';
-      callback();
-    }, 700);
-  }, 2800);
 }
 
 // ── Música ────────────────────────────────────────────
@@ -414,8 +377,6 @@ let uploadedPhotoUrl = '';
 
 // ── StPageFlip — libro de firmas realista ─────────────
 let pageFlipInstance = null;
-let mobileBookPage   = 0;
-let mobileBookData   = [];
 
 function buildFlipBook(entries) {
   const flipCont = document.getElementById('bookFlipContainer');
@@ -429,10 +390,6 @@ function buildFlipBook(entries) {
   }
   flipCont.innerHTML = '';
 
-  // Quitar zoom flotante previo si existe
-  const oldZoom = document.getElementById('bookZoomBtn');
-  if(oldZoom) oldZoom.remove();
-
   if(!entries || !entries.length) {
     if(emptyMsg) emptyMsg.style.display = 'block';
     if(navEl) navEl.style.display = 'none';
@@ -440,16 +397,16 @@ function buildFlipBook(entries) {
   }
   if(emptyMsg) emptyMsg.style.display = 'none';
 
-  mobileBookData = entries;
-  mobileBookPage = 0;
+  const isMobile = window.innerWidth < 700;
 
+  // Dimensiones — en móvil usar ancho completo del contenedor del libro
   const rightPage = document.getElementById('bookPageRight');
-  const rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 500 };
-  const isMobile = window.innerWidth < 750;
-  const W = Math.max(220, Math.floor(rect.width * 0.92));
+  const rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 480 };
+  const W = Math.max(200, Math.floor(rect.width * 0.92));
+  // En móvil damos más altura para que quepan texto + foto
   const H = isMobile
     ? Math.max(380, Math.floor(window.innerHeight * 0.52))
-    : Math.max(320, Math.floor(rect.height * 0.65));
+    : Math.max(300, Math.floor(rect.height * 0.62));
 
   flipCont.style.width  = W + 'px';
   flipCont.style.height = H + 'px';
@@ -458,8 +415,10 @@ function buildFlipBook(entries) {
     const page = document.createElement('div');
     page.className = 'stpf-page';
     const hasPhoto = e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '';
-    const photoRatio = isMobile ? 0.44 : 0.52;
+    // Foto más pequeña en móvil para dejar espacio al texto
+    const photoRatio = isMobile ? 0.42 : 0.55;
     const photoH = hasPhoto ? Math.floor(H * photoRatio) : 0;
+    const photoSrc = hasPhoto ? e.fotoUrl : '';
 
     page.innerHTML = `
       <div class="stpf-page__inner">
@@ -470,66 +429,55 @@ function buildFlipBook(entries) {
         <div class="stpf-page__line"></div>
         <p class="stpf-page__msg">"${e.mensaje}"</p>
         <p class="stpf-page__date">${e.fecha}</p>
-        ${hasPhoto ? `<div class="stpf-page__photo" style="height:${photoH}px">
-          <img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy" data-src="${e.fotoUrl}"/>
+        ${hasPhoto ? `
+        <div class="stpf-page__photo" style="height:${photoH}px">
+          <img src="${photoSrc}" alt="${e.nombre}" loading="lazy"/>
+          <button class="stpf-zoom-btn" data-src="${photoSrc}" title="Ver foto">🔍</button>
         </div>` : ''}
         <span class="stpf-page__num">${i + 1}</span>
       </div>`;
     flipCont.appendChild(page);
   });
 
+  // Botones de zoom — usar pointerup para no interferir con StPageFlip
+  flipCont.querySelectorAll('.stpf-zoom-btn').forEach(btn => {
+    btn.addEventListener('pointerup', (ev) => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      openVestImg(btn.dataset.src);
+    });
+  });
+
   try {
     pageFlipInstance = new St.PageFlip(flipCont, {
-      width: W, height: H,
-      size: 'fixed',
-      minWidth: 150, maxWidth: W,
-      minHeight: 200, maxHeight: H,
-      flippingTime: 700,
-      usePortrait: true, autoSize: false,
-      drawShadow: true, maxShadowOpacity: 0.4,
-      showCover: false,
+      width:              W,
+      height:             H,
+      size:               'fixed',
+      minWidth:           150,
+      maxWidth:           W,
+      minHeight:          200,
+      maxHeight:          H,
+      flippingTime:       800,
+      usePortrait:        true,
+      autoSize:           false,
+      drawShadow:         true,
+      maxShadowOpacity:   0.4,
+      showCover:          false,
       mobileScrollSupport: false,
-      disableFlipByClick: false,
-      useMouseEvents: true,
+      // Desactivar flip por clic — así los toques en la foto llegan bien
+      // El usuario usa los botones Anterior/Siguiente o arrastra la esquina
+      disableFlipByClick: true,
+      useMouseEvents:     true,
     });
 
     pageFlipInstance.loadFromHTML(flipCont.querySelectorAll('.stpf-page'));
-
-    // Botón de zoom FUERA del canvas — se actualiza con cada flip
-    const zoomBtn = document.createElement('button');
-    zoomBtn.id = 'bookZoomBtn';
-    zoomBtn.className = 'book-zoom-float';
-    zoomBtn.textContent = '🔍';
-    zoomBtn.title = 'Ver foto';
-    zoomBtn.style.display = 'none';
-
-    // Insertar justo después del flipCont, dentro del wrap
-    const wrap = document.getElementById('bookFlipWrap');
-    if(wrap) wrap.appendChild(zoomBtn);
-
-    // Función que actualiza el zoom según la página actual
-    function updateZoomBtn() {
-      const idx = pageFlipInstance.getCurrentPageIndex();
-      const entry = mobileBookData[idx];
-      if(entry && entry.fotoUrl && entry.fotoUrl !== '_local_' && entry.fotoUrl !== '') {
-        zoomBtn.style.display = 'flex';
-        zoomBtn.onclick = () => openVestImg(entry.fotoUrl);
-        mobileBookPage = idx;
-      } else {
-        zoomBtn.style.display = 'none';
-      }
-    }
 
     pageFlipInstance.on('flip', () => {
       const cur   = pageFlipInstance.getCurrentPageIndex() + 1;
       const total = pageFlipInstance.getPageCount();
       const numEl = document.getElementById('bookPageNum');
       if(numEl) numEl.textContent = `${cur} / ${total}`;
-      updateZoomBtn();
     });
-
-    // Inicializar con la primera página
-    updateZoomBtn();
 
     if(navEl) {
       navEl.style.display = 'flex';
@@ -539,6 +487,15 @@ function buildFlipBook(entries) {
 
   } catch(err) {
     console.warn('StPageFlip error:', err);
+    flipCont.innerHTML = entries.map(e => `
+      <div class="book-entry">
+        <div class="book-entry__photo"><span>${e.emoji}</span></div>
+        <div class="book-entry__body">
+          <div class="book-entry__header"><span class="book-entry__name">${e.nombre}</span></div>
+          <p class="book-entry__msg">"${e.mensaje}"</p>
+          <p class="book-entry__date">${e.fecha}</p>
+        </div>
+      </div>`).join('');
   }
 }
 
@@ -588,14 +545,11 @@ function initBook() {
   $('bookSubmit').addEventListener('click', submitFirma);
 
   const prevB=$('bookPrev'), nextB=$('bookNext');
-  if(prevB) prevB.addEventListener('click', () => {
-    if(!pageFlipInstance) return;
-    // 'bottom' activa la animación completa de vuelta de hoja
-    pageFlipInstance.flipPrev('bottom');
+  if(prevB) prevB.addEventListener('click',()=>{
+    if(pageFlipInstance) pageFlipInstance.flipPrev();
   });
-  if(nextB) nextB.addEventListener('click', () => {
-    if(!pageFlipInstance) return;
-    pageFlipInstance.flipNext('bottom');
+  if(nextB) nextB.addEventListener('click',()=>{
+    if(pageFlipInstance) pageFlipInstance.flipNext();
   });
 
   // Cargar mensajes desde Airtable al iniciar
@@ -762,46 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initBook();
   initVestModal();
   initAutoNudge();
-  initPWA();
 });
-
-// ── PWA — banner "Agregar a pantalla de inicio" ───────
-function initPWA() {
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    // Mostrar banner elegante después de 8 segundos
-    setTimeout(() => {
-      const banner = document.createElement('div');
-      banner.id = 'pwaBanner';
-      banner.style.cssText = `
-        position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
-        background:rgba(255,250,247,.96);backdrop-filter:blur(8px);
-        border:1px solid var(--blush);border-radius:50px;
-        padding:.65rem 1.25rem;display:flex;align-items:center;gap:.75rem;
-        font-family:var(--font-b);font-size:.78rem;color:var(--rose-deep);
-        box-shadow:0 4px 20px rgba(58,42,42,.15);z-index:3000;
-        animation:fadeUpT .5s both;white-space:nowrap;
-      `;
-      banner.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v10M7 10l5-5 5 5"/><path d="M5 20h14"/></svg>
-        <span>Agregar a pantalla de inicio</span>
-        <button style="background:var(--rose-deep);color:white;border:none;border-radius:20px;padding:.3rem .9rem;font-family:var(--font-b);font-size:.75rem;cursor:pointer;" onclick="installPWA()">Agregar</button>
-        <button style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:1.1rem;padding:0 .2rem;" onclick="this.closest('#pwaBanner').remove()">✕</button>
-      `;
-      document.body.appendChild(banner);
-      setTimeout(() => banner.remove(), 15000);
-    }, 8000);
-  });
-  window.installPWA = async function() {
-    if(!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    document.getElementById('pwaBanner')?.remove();
-  };
-}
 
 // ── Auto-nudge scroll (2 mini scrolls después de 1.5s) ─
 function initAutoNudge() {
@@ -843,25 +758,21 @@ function initAutoNudge() {
 // Definir cuáles fotos son de hombres y cuáles de mujeres
 // NOTA: las primeras 8 = hombres, las siguientes 8 = mujeres
 // Ajusta este número cuando Bryan confirme la división
+const VEST_HOMBRES_COUNT = 8;
+
 function initVestModal() {
+  // Generar las imágenes en los grids
+  const total = 16;
   const gridH = document.getElementById('vestGridHombres');
   const gridD = document.getElementById('vestGridDamas');
   if(!gridH || !gridD) return;
 
-  // Hombres: h1.jpg, h2.jpg, h3.jpg...
-  for(let i = 1; i <= 20; i++) {
-    const div = document.createElement('div');
-    div.className = 'vest-grid__item';
-    div.innerHTML = `<img src="img/vestimenta/h${i}.jpg" alt="Caballero ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
-    gridH.appendChild(div);
-  }
-
-  // Mujeres: m1.jpg, m2.jpg, m3.jpg...
-  for(let i = 1; i <= 20; i++) {
-    const div = document.createElement('div');
-    div.className = 'vest-grid__item';
-    div.innerHTML = `<img src="img/vestimenta/m${i}.jpg" alt="Dama ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
-    gridD.appendChild(div);
+  for(let i = 1; i <= total; i++) {
+    const img = document.createElement('div');
+    img.className = 'vest-grid__item';
+    img.innerHTML = `<img src="img/vestimenta/v${i}.jpg" alt="Referencia ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
+    if(i <= VEST_HOMBRES_COUNT) gridH.appendChild(img);
+    else gridD.appendChild(img);
   }
 
   // Cerrar con Escape
