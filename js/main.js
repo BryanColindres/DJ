@@ -553,14 +553,12 @@ function initBook() {
   const prevB=$('bookPrev'), nextB=$('bookNext');
   if(prevB) prevB.addEventListener('click', () => {
     if(!pageFlipInstance) return;
-    const cur = pageFlipInstance.getCurrentPageIndex();
-    if(cur > 0) pageFlipInstance.flipPrev('bottom')//turnToPage(cur - 1);
+    // 'bottom' activa la animación completa de vuelta de hoja
+    pageFlipInstance.flipPrev('bottom');
   });
   if(nextB) nextB.addEventListener('click', () => {
     if(!pageFlipInstance) return;
-    const cur   = pageFlipInstance.getCurrentPageIndex();
-    const total = pageFlipInstance.getPageCount();
-    if(cur < total - 1) pageFlipInstance.flipNext('bottom')//turnToPage(cur + 1);
+    pageFlipInstance.flipNext('bottom');
   });
 
   // Cargar mensajes desde Airtable al iniciar
@@ -769,21 +767,25 @@ function initAutoNudge() {
 // Definir cuáles fotos son de hombres y cuáles de mujeres
 // NOTA: las primeras 8 = hombres, las siguientes 8 = mujeres
 // Ajusta este número cuando Bryan confirme la división
-const VEST_HOMBRES_COUNT = 8;
-
 function initVestModal() {
-  // Generar las imágenes en los grids
-  const total = 16;
   const gridH = document.getElementById('vestGridHombres');
   const gridD = document.getElementById('vestGridDamas');
   if(!gridH || !gridD) return;
 
-  for(let i = 1; i <= total; i++) {
-    const img = document.createElement('div');
-    img.className = 'vest-grid__item';
-    img.innerHTML = `<img src="img/vestimenta/v${i}.jpg" alt="Referencia ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
-    if(i <= VEST_HOMBRES_COUNT) gridH.appendChild(img);
-    else gridD.appendChild(img);
+  // Hombres: h1.jpg, h2.jpg, h3.jpg...
+  for(let i = 1; i <= 20; i++) {
+    const div = document.createElement('div');
+    div.className = 'vest-grid__item';
+    div.innerHTML = `<img src="img/vestimenta/h${i}.jpg" alt="Caballero ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
+    gridH.appendChild(div);
+  }
+
+  // Mujeres: m1.jpg, m2.jpg, m3.jpg...
+  for(let i = 1; i <= 20; i++) {
+    const div = document.createElement('div');
+    div.className = 'vest-grid__item';
+    div.innerHTML = `<img src="img/vestimenta/m${i}.jpg" alt="Dama ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
+    gridD.appendChild(div);
   }
 
   // Cerrar con Escape
