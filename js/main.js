@@ -377,6 +377,8 @@ let uploadedPhotoUrl = '';
 
 // ── StPageFlip — libro de firmas realista ─────────────
 let pageFlipInstance = null;
+let mobileBookPage   = 0;
+let mobileBookData   = [];
 
 function buildFlipBook(entries) {
   const flipCont = document.getElementById('bookFlipContainer');
@@ -390,6 +392,10 @@ function buildFlipBook(entries) {
   }
   flipCont.innerHTML = '';
 
+  // Quitar zoom flotante previo si existe
+  const oldZoom = document.getElementById('bookZoomBtn');
+  if(oldZoom) oldZoom.remove();
+
   if(!entries || !entries.length) {
     if(emptyMsg) emptyMsg.style.display = 'block';
     if(navEl) navEl.style.display = 'none';
@@ -397,16 +403,16 @@ function buildFlipBook(entries) {
   }
   if(emptyMsg) emptyMsg.style.display = 'none';
 
-  const isMobile = window.innerWidth < 700;
+  mobileBookData = entries;
+  mobileBookPage = 0;
 
-  // Dimensiones — en móvil usar ancho completo del contenedor del libro
   const rightPage = document.getElementById('bookPageRight');
-  const rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 480 };
-  const W = Math.max(200, Math.floor(rect.width * 0.92));
-  // En móvil damos más altura para que quepan texto + foto
+  const rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 500 };
+  const isMobile = window.innerWidth < 750;
+  const W = Math.max(220, Math.floor(rect.width * 0.92));
   const H = isMobile
     ? Math.max(380, Math.floor(window.innerHeight * 0.52))
-    : Math.max(300, Math.floor(rect.height * 0.62));
+    : Math.max(320, Math.floor(rect.height * 0.65));
 
   flipCont.style.width  = W + 'px';
   flipCont.style.height = H + 'px';
@@ -415,10 +421,8 @@ function buildFlipBook(entries) {
     const page = document.createElement('div');
     page.className = 'stpf-page';
     const hasPhoto = e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '';
-    // Foto más pequeña en móvil para dejar espacio al texto
-    const photoRatio = isMobile ? 0.42 : 0.55;
+    const photoRatio = isMobile ? 0.44 : 0.52;
     const photoH = hasPhoto ? Math.floor(H * photoRatio) : 0;
-    const photoSrc = hasPhoto ? e.fotoUrl : '';
 
     page.innerHTML = `
       <div class="stpf-page__inner">
@@ -429,55 +433,66 @@ function buildFlipBook(entries) {
         <div class="stpf-page__line"></div>
         <p class="stpf-page__msg">"${e.mensaje}"</p>
         <p class="stpf-page__date">${e.fecha}</p>
-        ${hasPhoto ? `
-        <div class="stpf-page__photo" style="height:${photoH}px">
-          <img src="${photoSrc}" alt="${e.nombre}" loading="lazy"/>
-          <button class="stpf-zoom-btn" data-src="${photoSrc}" title="Ver foto">🔍</button>
+        ${hasPhoto ? `<div class="stpf-page__photo" style="height:${photoH}px">
+          <img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy" data-src="${e.fotoUrl}"/>
         </div>` : ''}
         <span class="stpf-page__num">${i + 1}</span>
       </div>`;
     flipCont.appendChild(page);
   });
 
-  // Botones de zoom — usar pointerup para no interferir con StPageFlip
-  flipCont.querySelectorAll('.stpf-zoom-btn').forEach(btn => {
-    btn.addEventListener('pointerup', (ev) => {
-      ev.stopPropagation();
-      ev.preventDefault();
-      openVestImg(btn.dataset.src);
-    });
-  });
-
   try {
     pageFlipInstance = new St.PageFlip(flipCont, {
-      width:              W,
-      height:             H,
-      size:               'fixed',
-      minWidth:           150,
-      maxWidth:           W,
-      minHeight:          200,
-      maxHeight:          H,
-      flippingTime:       800,
-      usePortrait:        true,
-      autoSize:           false,
-      drawShadow:         true,
-      maxShadowOpacity:   0.4,
-      showCover:          false,
+      width: W, height: H,
+      size: 'fixed',
+      minWidth: 150, maxWidth: W,
+      minHeight: 200, maxHeight: H,
+      flippingTime: 700,
+      usePortrait: true, autoSize: false,
+      drawShadow: true, maxShadowOpacity: 0.4,
+      showCover: false,
       mobileScrollSupport: false,
-      // Desactivar flip por clic — así los toques en la foto llegan bien
-      // El usuario usa los botones Anterior/Siguiente o arrastra la esquina
-      disableFlipByClick: true,
-      useMouseEvents:     true,
+      disableFlipByClick: false,
+      useMouseEvents: true,
     });
 
     pageFlipInstance.loadFromHTML(flipCont.querySelectorAll('.stpf-page'));
+
+    // Botón de zoom FUERA del canvas — se actualiza con cada flip
+    const zoomBtn = document.createElement('button');
+    zoomBtn.id = 'bookZoomBtn';
+    zoomBtn.className = 'book-zoom-float';
+    zoomBtn.textContent = '🔍';
+    zoomBtn.title = 'Ver foto';
+    zoomBtn.style.display = 'none';
+
+    // Insertar justo después del flipCont, dentro del wrap
+    const wrap = document.getElementById('bookFlipWrap');
+    if(wrap) wrap.appendChild(zoomBtn);
+
+    // Función que actualiza el zoom según la página actual
+    function updateZoomBtn() {
+      const idx = pageFlipInstance.getCurrentPageIndex();
+      const entry = mobileBookData[idx];
+      if(entry && entry.fotoUrl && entry.fotoUrl !== '_local_' && entry.fotoUrl !== '') {
+        zoomBtn.style.display = 'flex';
+        zoomBtn.onclick = () => openVestImg(entry.fotoUrl);
+        mobileBookPage = idx;
+      } else {
+        zoomBtn.style.display = 'none';
+      }
+    }
 
     pageFlipInstance.on('flip', () => {
       const cur   = pageFlipInstance.getCurrentPageIndex() + 1;
       const total = pageFlipInstance.getPageCount();
       const numEl = document.getElementById('bookPageNum');
       if(numEl) numEl.textContent = `${cur} / ${total}`;
+      updateZoomBtn();
     });
+
+    // Inicializar con la primera página
+    updateZoomBtn();
 
     if(navEl) {
       navEl.style.display = 'flex';
@@ -487,15 +502,6 @@ function buildFlipBook(entries) {
 
   } catch(err) {
     console.warn('StPageFlip error:', err);
-    flipCont.innerHTML = entries.map(e => `
-      <div class="book-entry">
-        <div class="book-entry__photo"><span>${e.emoji}</span></div>
-        <div class="book-entry__body">
-          <div class="book-entry__header"><span class="book-entry__name">${e.nombre}</span></div>
-          <p class="book-entry__msg">"${e.mensaje}"</p>
-          <p class="book-entry__date">${e.fecha}</p>
-        </div>
-      </div>`).join('');
   }
 }
 
@@ -545,11 +551,16 @@ function initBook() {
   $('bookSubmit').addEventListener('click', submitFirma);
 
   const prevB=$('bookPrev'), nextB=$('bookNext');
-  if(prevB) prevB.addEventListener('click',()=>{
-    if(pageFlipInstance) pageFlipInstance.flipPrev();
+  if(prevB) prevB.addEventListener('click', () => {
+    if(!pageFlipInstance) return;
+    const cur = pageFlipInstance.getCurrentPageIndex();
+    if(cur > 0) pageFlipInstance.turnToPage(cur - 1);
   });
-  if(nextB) nextB.addEventListener('click',()=>{
-    if(pageFlipInstance) pageFlipInstance.flipNext();
+  if(nextB) nextB.addEventListener('click', () => {
+    if(!pageFlipInstance) return;
+    const cur   = pageFlipInstance.getCurrentPageIndex();
+    const total = pageFlipInstance.getPageCount();
+    if(cur < total - 1) pageFlipInstance.turnToPage(cur + 1);
   });
 
   // Cargar mensajes desde Airtable al iniciar
