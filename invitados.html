@@ -1,123 +1,922 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Generador de Links — Boda Bryan & Stefany</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet"/>
-  <style>
-    :root{--rose:#9B6B6B;--blush:#EDD5C5;--cream:#F7EFE8;--gold:#C9A84C}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Jost',sans-serif;font-weight:300;background:var(--cream);color:#3A2A2A;min-height:100vh;padding:2rem}
-    h1{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:400;color:var(--rose);margin-bottom:.3rem}
-    .subtitle{color:#A88A8A;font-size:.85rem;letter-spacing:.1em;margin-bottom:2rem}
-    .card{background:white;border-radius:20px;padding:2rem;margin-bottom:1.5rem;box-shadow:0 4px 20px rgba(155,107,107,.08)}
-    label{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:#A88A8A;display:block;margin-bottom:.4rem}
-    input,textarea{width:100%;padding:.7rem 1rem;border:1.5px solid var(--blush);border-radius:12px;font-family:'Jost',sans-serif;font-size:.9rem;outline:none;transition:border .2s;margin-bottom:1rem}
-    input:focus,textarea:focus{border-color:var(--rose)}
-    textarea{height:180px;resize:vertical}
-    .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.75rem 1.75rem;border-radius:50px;font-family:'Jost',sans-serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:none;transition:all .25s}
-    .btn-primary{background:var(--rose);color:white}.btn-primary:hover{background:#C4907A;transform:translateY(-1px)}
-    .btn-outline{background:white;color:var(--rose);border:1.5px solid var(--rose)}.btn-outline:hover{background:var(--rose);color:white}
-    .results{margin-top:2rem}
-    .guest-row{display:grid;grid-template-columns:1fr auto auto;gap:.75rem;align-items:center;padding:1rem 1.25rem;background:var(--cream);border-radius:14px;margin-bottom:.6rem}
-    .guest-name{font-size:.95rem;color:#3A2A2A}
-    .guest-link{font-size:.75rem;color:#A88A8A;word-break:break-all}
-    .wa-btn{display:inline-flex;align-items:center;gap:.3rem;padding:.5rem 1rem;background:#25D366;color:white;border:none;border-radius:30px;font-size:.75rem;cursor:pointer;text-decoration:none;white-space:nowrap;transition:all .2s}
-    .wa-btn:hover{background:#1da851;transform:scale(1.03)}
-    .copy-btn{padding:.5rem 1rem;background:var(--blush);color:var(--rose);border:none;border-radius:30px;font-size:.75rem;cursor:pointer;transition:all .2s}
-    .copy-btn:hover{background:var(--rose);color:white}
-    .tip{background:#FFF8F0;border-left:3px solid var(--gold);padding:1rem 1.25rem;border-radius:0 12px 12px 0;font-size:.85rem;line-height:1.7;color:#6B4F4F;margin-top:1rem}
-    .tip strong{color:var(--rose)}
-    .counter{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--rose);margin:.5rem 0}
-    @media(max-width:600px){.guest-row{grid-template-columns:1fr;gap:.4rem}}
-  </style>
-</head>
-<body>
-  <h1>💌 Gestor de Invitados</h1>
-  <p class="subtitle">Boda Bryan Daniel & Stefany Jissel · 03.10.2026</p>
+// ═══════════════════════════════════════════════════════
+//  MAIN.JS — Boda Bryan & Stefany v4
+// ═══════════════════════════════════════════════════════
+const C = window.BODA_CONFIG;
+const $  = id => document.getElementById(id);
 
-  <div class="card">
-    <label>URL base de tu invitación (cámbiala cuando la subas a GitHub)</label>
-    <input type="text" id="baseUrl" value="https://b.colindres.github.io/boda/" placeholder="https://tuusuario.github.io/boda/"/>
+// ── Nombre del invitado desde URL ──────────────────────
+function getGuest() {
+  const p = new URLSearchParams(window.location.search);
+  const raw = p.get('i') || p.get('inv') || '';
+  if (!raw) return '';
+  return raw.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+const GUEST = getGuest();
 
-    <label>Lista de invitados — un nombre por línea</label>
-    <textarea id="guestList" placeholder="María López
-Carlos y Ana Rodríguez
-Familia Martínez
-Tío Jorge Mejía
-Sofía Hernández"></textarea>
+// ── Aplicar config ────────────────────────────────────
+function applyConfig() {
+  const set  = (id, v) => { const el=$(id); if(el) el.textContent = v; };
+  const href = (id, u) => { const el=$(id); if(el) el.href = u; };
 
-    <button class="btn btn-primary" onclick="generate()">✨ Generar enlaces</button>
-  </div>
+  // Nombres
+  set('heroNovio',   C.novio.nombre);
+  set('heroNovia',   C.novia.nombre);
+  set('heroApellidos', C.novio.apellidos + ' · ' + C.novia.apellidos);
+  set('footerNovio', C.novio.nombre.split(' ')[0]);
+  set('footerNovia', C.novia.nombre.split(' ')[0]);
 
-  <div class="tip">
-    <strong>¿Cómo usar esto?</strong><br>
-    1. Escribe los nombres tal como quieres que aparezcan en la invitación<br>
-    2. Haz clic en "Generar enlaces"<br>
-    3. Usa el botón <strong>WhatsApp</strong> para enviar cada invitación con un clic<br>
-    4. El mensaje ya incluye el nombre del invitado automáticamente
-  </div>
+  // Evento
+  set('eventDate',  C.evento.fechaTexto);
+  set('eventTime',  C.evento.hora);
+  // venueName = nombre del salon, eventVenue = dirección
+  // Ambos están fijos en el HTML — solo actualizamos la dirección
+  set('venueName',  'Valletal Eventos');
+  set('eventVenue', 'Cerro Grande, Valle de Ángeles');
 
-  <div class="results" id="results"></div>
+  // Versículo
+  const bq = $('verseText');
+  if(bq) bq.textContent = '"' + C.versiculo.texto + '"';
+  set('verseCite', '— ' + C.versiculo.cita);
 
-  <script>
-    function slugify(name) {
-      return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-        .replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-');
+  // Mapas
+  href('mapsBtn', C.evento.mapsUrl);
+  href('wazeBtn', C.evento.wazeUrl);
+
+  // Historia — título, subtítulo y textos
+  if(C.historiaTitulo)    set('historiaTituloEl',    C.historiaTitulo);
+  if(C.historiaSubtitulo) set('historiaSubtituloEl', C.historiaSubtitulo);
+  ['story1','story2','story3'].forEach((id,i) => set(id, C.historiaTextos[i]||''));
+
+  // Libro de firmas — etiquetas desde config
+  if(C.libroFirmas.titulo)       set('bookTituloEl',    C.libroFirmas.titulo);
+  if(C.libroFirmas.subtitulo)    set('bookSubtituloEl', C.libroFirmas.subtitulo);
+  if(C.libroFirmas.descripcion)  set('bookDescEl',      C.libroFirmas.descripcion);
+
+  // Vestimenta section
+  if(C.vestimentaSeccion) {
+    set('vestTituloLabel', C.vestimentaSeccion.titulo);
+    set('vestTitulo',      C.vestimentaSeccion.subtitulo);
+    set('vestTexto',       C.vestimentaSeccion.texto);
+    const vl = document.getElementById('vestPinterest');
+    if(vl) vl.href = C.vestimentaSeccion.pinterestUrl;
+    // Sin columna de imagen en esta versión
+  }
+
+  // RSVP
+  set('rsvpDesc', C.rsvp.descripcion);
+
+  // Footer
+  set('footerPhrase', C.footer.frase);
+
+  // Audio
+  const bgM = $('bgMusic'), voiceM = $('voiceMsg');
+  if(bgM) bgM.src = C.audio.musica;
+  if(voiceM) voiceM.src = C.audio.mensajeVoz;
+
+  // Instrucciones — con Pinterest y Regalo
+  buildInstrucciones();
+
+  // Galería
+  const gg = $('galleryGrid');
+  if(gg) gg.innerHTML = C.fotos.galeria.map((src,i) => `
+    <div class="gal-item reveal" data-idx="${i}">
+      <img src="${src}" onerror="this.parentElement.style.display='none'"/>
+    </div>`).join('');
+
+  // Timeline
+  buildTimeline();
+
+  // Libro de firmas — opciones
+  const privRow  = $('bookPrivacyRow');
+  const photoArea = $('bookPhotoArea');
+  if(privRow)   privRow.style.display   = C.libroFirmas.permitirMensajePrivado ? 'block' : 'none';
+  if(photoArea) photoArea.style.display = C.libroFirmas.permitirFotos ? 'block' : 'none';
+
+  // Nombre del invitado personalizado
+  if(GUEST) {
+    // Voz
+    set('voiceName', GUEST);
+    // Libro
+    set('bookGuestName', GUEST);
+    // RSVP personal
+    const block = $('rsvpPersonal');
+    if(block) block.style.display = 'block';
+    set('rsvpPersonalTitulo', C.invitacionPersonal.titulo);
+    set('rsvpPersonalMsg',    C.invitacionPersonal.mensaje);
+    set('rsvpPersonalNombre', GUEST);
+    set('rsvpPersonalNota',   C.invitacionPersonal.nota);
+    // WhatsApp personalizado — dos botones
+    const msg = C.whatsapp.mensaje.replace('{nombre}', GUEST);
+    setWAButtons(msg);
+  } else {
+    // WhatsApp genérico
+    const msg = C.whatsapp.mensaje.replace('{nombre}', 'Invitado');
+    setWAButtons(msg);
+  }
+}
+
+function setWAButtons(msg) {
+  const encoded = encodeURIComponent(msg);
+  const btnNovio = document.getElementById('whatsappBtnNovio');
+  const btnNovia = document.getElementById('whatsappBtnNovia');
+  if(btnNovio) btnNovio.href = `https://wa.me/50431626792?text=${encoded}`;
+  if(btnNovia) btnNovia.href = `https://wa.me/50499223790?text=${encoded}`;
+
+  // Colores
+  const r = document.documentElement.style;
+  r.setProperty('--rose-deep', C.colores.roseProfundo);
+  r.setProperty('--rose-mid',  C.colores.roseMedio);
+  r.setProperty('--rose-soft', C.colores.roseSuave);
+  r.setProperty('--blush',     C.colores.blush);
+  r.setProperty('--cream',     C.colores.crema);
+  r.setProperty('--gold',      C.colores.dorado);
+}
+
+// ── Instrucciones con Pinterest y Regalo ──────────────
+function buildInstrucciones() {
+  const grid = $('instrGrid');
+  if(!grid) return;
+  grid.innerHTML = C.instrucciones.map(item => {
+    const pinterestBtn = item.tieneLink
+      ? `<a class="btn btn-pinterest" href="${C.vestimenta.pinterestUrl}" target="_blank" style="margin-top:.75rem;font-size:.72rem;padding:.55rem 1.2rem">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="color:#E60023"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+          Ver referencias
+        </a>`
+      : '';
+    return `
+      <div class="instr-card reveal">
+        <div class="instr-card__icon">${item.icono}</div>
+        <h3>${item.titulo}</h3>
+        <p>${item.texto}</p>
+        ${pinterestBtn}
+      </div>`;
+  }).join('');
+}
+
+// ── Timeline con fotos ────────────────────────────────
+function buildTimeline() {
+  const wrap = $('timelineWrap');
+  if(!wrap) return;
+  wrap.innerHTML = C.timeline.map((item, i) => {
+    const photoHtml = item.foto
+      ? `<div class="tl-photo"><img src="${item.foto}" alt="${item.titulo}" onerror="this.parentElement.style.display='none'"/></div>`
+      : '';
+    const body = `
+      <div class="tl-body">
+        <span class="tl-fecha">${item.fecha}</span>
+        <h3 class="tl-titulo">${item.titulo}</h3>
+        <p class="tl-texto">${item.texto}</p>
+        ${photoHtml}
+      </div>`;
+    const dot   = `<div class="tl-dot"><div class="tl-dot__icon">${item.icono}</div></div>`;
+    const empty = `<div class="tl-empty"></div>`;
+    return `<div class="tl-item" data-i="${i}">
+      ${i%2===0 ? body+dot+empty : empty+dot+body}
+    </div>`;
+  }).join('');
+}
+
+// ── Pétalos ────────────────────────────────────────────
+function spawnPetals(containerId, count) {
+  const el = $(containerId);
+  if(!el) return;
+  const colors = ['#EDD5C5','#D4A99A','#C4907A','#E8C4B4','#F0D8CC'];
+  for(let i=0; i<count; i++) {
+    const p = document.createElement('div');
+    const sz = Math.random()*14+7;
+    p.className = containerId==='videoPetals' ? 'v-petal' : 'petal';
+    p.style.cssText = `left:${Math.random()*100}%;width:${sz}px;height:${sz*1.3}px;background:${colors[i%colors.length]};animation-duration:${Math.random()*7+6}s;animation-delay:${Math.random()*10}s;`;
+    el.appendChild(p);
+  }
+}
+
+// ── Countdown ─────────────────────────────────────────
+function startCountdown() {
+  const target = new Date(C.evento.fecha).getTime();
+  const pad = n => String(Math.floor(n)).padStart(2,'0');
+  const tick = () => {
+    const diff = target - Date.now();
+    if(diff<=0){ $('cdLabel').textContent='¡Es hoy! 🌹'; return; }
+    $('cd-days').textContent  = pad(diff/86400000);
+    $('cd-hours').textContent = pad((diff%86400000)/3600000);
+    $('cd-mins').textContent  = pad((diff%3600000)/60000);
+    $('cd-secs').textContent  = pad((diff%60000)/1000);
+  };
+  tick(); setInterval(tick,1000);
+}
+
+// ── Scroll Reveal ─────────────────────────────────────
+function initReveal() {
+  const obs = new IntersectionObserver(es => {
+    es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); }});
+  }, {threshold:0.1});
+  document.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach(el => obs.observe(el));
+
+  const tlObs = new IntersectionObserver(es => {
+    es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in-view'); tlObs.unobserve(e.target); }});
+  }, {threshold:0.15});
+  document.querySelectorAll('.tl-item').forEach(el => tlObs.observe(el));
+}
+
+// ══════════════════════════════════════════════════════
+//  VIDEO INTRO
+// ══════════════════════════════════════════════════════
+function initVideo() {
+  const screen     = $('videoScreen');
+  const videoEl    = $('videoEl');
+  const progressF  = $('videoProgressFill');
+  const skipBtn    = $('videoSkip');
+  const invitation = $('invitation');
+  // El delay en segundos viene del config — fácil de cambiar
+  const delayMs    = (C.videoDelay || 2) * 1000;
+
+  const tapMsg    = $('videoTapMsg');
+  let playStarted  = false;
+  let skipShown    = false;
+
+  // Al tocar cualquier parte de la pantalla → ocultar mensaje y reproducir
+  screen.addEventListener('click', () => {
+    if(!playStarted) startVideo();
+  });
+
+  function startVideo() {
+    if(playStarted) return;
+    playStarted = true;
+    // Ocultar mensaje de toque elegantemente
+    if(tapMsg) {
+      tapMsg.classList.add('hiding');
+      setTimeout(() => tapMsg.classList.add('gone'), 700);
+    }
+    videoEl.volume = 1;
+    videoEl.play().catch(() => {
+      videoEl.muted = true;
+      videoEl.play().catch(() => openInvitation());
+    });
+  }
+
+  // Progreso del video
+  videoEl.addEventListener('timeupdate', () => {
+    if(!videoEl.duration) return;
+    progressF.style.width = (videoEl.currentTime / videoEl.duration * 100) + '%';
+    // Skip aparece después de 3 segundos de reproducción
+    if(!skipShown && videoEl.currentTime >= 3) {
+      skipShown = true;
+      skipBtn.style.display = 'block';
+    }
+  });
+
+  // Video terminó → esperar los segundos configurados → abrir invitación
+  videoEl.addEventListener('ended', () => {
+    setTimeout(openInvitation, delayMs);
+  });
+
+  // Botón skip
+  skipBtn.addEventListener('click', openInvitation);
+
+  function openInvitation() {
+    if(screen.classList.contains('closing')) return;
+    screen.classList.add('closing');
+    setTimeout(() => {
+      screen.classList.add('gone');
+      // Si hay invitado, mostrar pantalla con su nombre primero
+      if(GUEST) {
+        showNameScreen(() => {
+          invitation.classList.add('visible');
+          playMusicSoftly();
+          setTimeout(initReveal, 100);
+          initLightbox();
+        });
+      } else {
+        invitation.classList.add('visible');
+        playMusicSoftly();
+        setTimeout(initReveal, 100);
+        initLightbox();
+      }
+    }, 800);
+  }
+}
+
+// ── Pantalla animada con nombre del invitado ──────────
+function showNameScreen(callback) {
+  const ns    = document.getElementById('nameScreen');
+  const nameEl = document.getElementById('nameScreenGuest');
+  if(!ns || !nameEl) { callback(); return; }
+
+  nameEl.textContent = GUEST;
+  spawnPetals('namePetals', 10);
+
+  // Mostrar con fade in
+  ns.style.display = 'flex';
+  ns.style.opacity = '0';
+  requestAnimationFrame(() => {
+    ns.style.transition = 'opacity .8s ease';
+    ns.style.opacity    = '1';
+  });
+
+  // Después de 2.8s, fade out y llamar callback
+  setTimeout(() => {
+    ns.style.opacity = '0';
+    setTimeout(() => {
+      ns.style.display = 'none';
+      callback();
+    }, 700);
+  }, 2800);
+}
+
+// ── Música ────────────────────────────────────────────
+let musicOn = false;
+function initMusic() {
+  const btn = $('musicBtn'), aud = $('bgMusic');
+  if(!aud) return;
+  aud.volume = 0;
+  btn.addEventListener('click', () => {
+    if(musicOn){ aud.pause(); musicOn=false; toggleIcon(false); }
+    else { aud.play().catch(()=>{}); fadeVol(aud,0,.32,3500); musicOn=true; toggleIcon(true); }
+  });
+}
+function toggleIcon(on){
+  $('musicOn').style.display  = on?'block':'none';
+  $('musicOff').style.display = on?'none':'block';
+}
+function playMusicSoftly() {
+  const aud = $('bgMusic');
+  if(!aud||musicOn) return;
+  aud.play().then(()=>{ musicOn=true; toggleIcon(true); fadeVol(aud,0,.28,5000); }).catch(()=>{});
+}
+function fadeVol(aud,from,to,ms) {
+  aud.volume=from;
+  const steps=60, step=(to-from)/steps;
+  let cur=from;
+  const iv=setInterval(()=>{ cur+=step; aud.volume=Math.min(Math.max(cur,0),1); if((step>0&&cur>=to)||(step<0&&cur<=to)) clearInterval(iv); },ms/steps);
+}
+
+// ── Mensaje de voz ────────────────────────────────────
+function initVoice() {
+  const btn=  $('voiceBtn'), aud=$('voiceMsg'),
+        prog= $('voiceProgress'), fill=$('voiceProgressFill'),
+        lbl=  $('voiceLabel'), ico=$('voiceIcon');
+  if(!btn||!aud) return;
+  let playing=false;
+  btn.addEventListener('click',()=>{
+    if(!playing){
+      aud.play().catch(()=>{ lbl.textContent='Audio no disponible aún'; return; });
+      playing=true; ico.textContent='⏸'; lbl.textContent='Pausar';
+      prog.classList.add('active');
+      const bg=$('bgMusic');
+      if(bg&&musicOn) fadeVol(bg,bg.volume,.07,1500);
+    } else {
+      aud.pause(); playing=false; ico.textContent='▶'; lbl.textContent='Escuchar mensaje';
+      const bg=$('bgMusic');
+      if(bg&&musicOn) fadeVol(bg,bg.volume,.28,1500);
+    }
+  });
+  aud.addEventListener('timeupdate',()=>{ if(aud.duration) fill.style.width=(aud.currentTime/aud.duration*100)+'%'; });
+  aud.addEventListener('ended',()=>{
+    playing=false; ico.textContent='▶'; lbl.textContent='Escuchar de nuevo';
+    const bg=$('bgMusic');
+    if(bg&&musicOn) fadeVol(bg,bg.volume,.28,2000);
+  });
+}
+
+// ── Lightbox ──────────────────────────────────────────
+let lbImgs=[], lbIdx=0;
+function initLightbox() {
+  const lb=$('lightbox'), img=$('lbImg');
+  if(!lb) return;
+  $('lbClose').onclick = ()=>{ lb.classList.remove('open'); document.body.style.overflow=''; };
+  $('lbPrev').onclick  = ()=>{ lbIdx=(lbIdx-1+lbImgs.length)%lbImgs.length; img.src=lbImgs[lbIdx]; };
+  $('lbNext').onclick  = ()=>{ lbIdx=(lbIdx+1)%lbImgs.length; img.src=lbImgs[lbIdx]; };
+  lb.onclick = e=>{ if(e.target===lb){ lb.classList.remove('open'); document.body.style.overflow=''; }};
+  document.addEventListener('keydown',e=>{
+    if(!lb.classList.contains('open')) return;
+    if(e.key==='Escape'){ lb.classList.remove('open'); document.body.style.overflow=''; }
+    if(e.key==='ArrowLeft') { lbIdx=(lbIdx-1+lbImgs.length)%lbImgs.length; img.src=lbImgs[lbIdx]; }
+    if(e.key==='ArrowRight'){ lbIdx=(lbIdx+1)%lbImgs.length; img.src=lbImgs[lbIdx]; }
+  });
+  const gg=$('galleryGrid');
+  if(gg) gg.addEventListener('click',e=>{
+    const item=e.target.closest('.gal-item'); if(!item) return;
+    lbImgs=Array.from(document.querySelectorAll('.gal-item img')).map(i=>i.src);
+    lbIdx=parseInt(item.dataset.idx)||0;
+    img.src=lbImgs[lbIdx];
+    lb.classList.add('open'); document.body.style.overflow='hidden';
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  LIBRO DE FIRMAS
+// ══════════════════════════════════════════════════════
+const BOOK_KEY = 'boda_book_v4';
+let selectedEmoji = '❤️';
+let bookPage = 0;
+const PER_PAGE = 4;
+let uploadedPhotoUrl = '';
+
+// ── StPageFlip — libro de firmas realista ─────────────
+let pageFlipInstance = null;
+let mobileBookPage   = 0;
+let mobileBookData   = [];
+
+function buildFlipBook(entries) {
+  const flipCont = document.getElementById('bookFlipContainer');
+  const emptyMsg = document.getElementById('bookEmptyMsg');
+  const navEl    = document.getElementById('bookNav');
+  if(!flipCont) return;
+
+  if(pageFlipInstance) {
+    try { pageFlipInstance.destroy(); } catch(e){}
+    pageFlipInstance = null;
+  }
+  flipCont.innerHTML = '';
+
+  // Quitar zoom flotante previo si existe
+  const oldZoom = document.getElementById('bookZoomBtn');
+  if(oldZoom) oldZoom.remove();
+
+  if(!entries || !entries.length) {
+    if(emptyMsg) emptyMsg.style.display = 'block';
+    if(navEl) navEl.style.display = 'none';
+    return;
+  }
+  if(emptyMsg) emptyMsg.style.display = 'none';
+
+  mobileBookData = entries;
+  mobileBookPage = 0;
+
+  const rightPage = document.getElementById('bookPageRight');
+  const rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 500 };
+  const isMobile = window.innerWidth < 750;
+  const W = Math.max(220, Math.floor(rect.width * 0.92));
+  const H = isMobile
+    ? Math.max(380, Math.floor(window.innerHeight * 0.52))
+    : Math.max(320, Math.floor(rect.height * 0.65));
+
+  flipCont.style.width  = W + 'px';
+  flipCont.style.height = H + 'px';
+
+  entries.forEach((e, i) => {
+    const page = document.createElement('div');
+    page.className = 'stpf-page';
+    const hasPhoto = e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '';
+    const photoRatio = isMobile ? 0.44 : 0.52;
+    const photoH = hasPhoto ? Math.floor(H * photoRatio) : 0;
+
+    page.innerHTML = `
+      <div class="stpf-page__inner">
+        <div class="stpf-page__header">
+          <span class="stpf-page__name">${e.nombre}</span>
+          <span class="stpf-page__emoji">${e.emoji}</span>
+        </div>
+        <div class="stpf-page__line"></div>
+        <p class="stpf-page__msg">"${e.mensaje}"</p>
+        <p class="stpf-page__date">${e.fecha}</p>
+        ${hasPhoto ? `<div class="stpf-page__photo" style="height:${photoH}px">
+          <img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy" data-src="${e.fotoUrl}"/>
+        </div>` : ''}
+        <span class="stpf-page__num">${i + 1}</span>
+      </div>`;
+    flipCont.appendChild(page);
+  });
+
+  try {
+    pageFlipInstance = new St.PageFlip(flipCont, {
+      width: W, height: H,
+      size: 'fixed',
+      minWidth: 150, maxWidth: W,
+      minHeight: 200, maxHeight: H,
+      flippingTime: 700,
+      usePortrait: true, autoSize: false,
+      drawShadow: true, maxShadowOpacity: 0.4,
+      showCover: false,
+      mobileScrollSupport: false,
+      disableFlipByClick: false,
+      useMouseEvents: true,
+    });
+
+    pageFlipInstance.loadFromHTML(flipCont.querySelectorAll('.stpf-page'));
+
+    // Botón de zoom FUERA del canvas — se actualiza con cada flip
+    const zoomBtn = document.createElement('button');
+    zoomBtn.id = 'bookZoomBtn';
+    zoomBtn.className = 'book-zoom-float';
+    zoomBtn.textContent = '🔍';
+    zoomBtn.title = 'Ver foto';
+    zoomBtn.style.display = 'none';
+
+    // Insertar justo después del flipCont, dentro del wrap
+    const wrap = document.getElementById('bookFlipWrap');
+    if(wrap) wrap.appendChild(zoomBtn);
+
+    // Función que actualiza el zoom según la página actual
+    function updateZoomBtn() {
+      const idx = pageFlipInstance.getCurrentPageIndex();
+      const entry = mobileBookData[idx];
+      if(entry && entry.fotoUrl && entry.fotoUrl !== '_local_' && entry.fotoUrl !== '') {
+        zoomBtn.style.display = 'flex';
+        zoomBtn.onclick = () => openVestImg(entry.fotoUrl);
+        mobileBookPage = idx;
+      } else {
+        zoomBtn.style.display = 'none';
+      }
     }
 
-    function generate() {
-      const base = document.getElementById('baseUrl').value.replace(/\/$/, '') + '/';
-      const raw = document.getElementById('guestList').value.trim();
-      if (!raw) { alert('Por favor ingresa al menos un nombre.'); return; }
+    pageFlipInstance.on('flip', () => {
+      const cur   = pageFlipInstance.getCurrentPageIndex() + 1;
+      const total = pageFlipInstance.getPageCount();
+      const numEl = document.getElementById('bookPageNum');
+      if(numEl) numEl.textContent = `${cur} / ${total}`;
+      updateZoomBtn();
+    });
 
-      const names = raw.split('\n').map(n => n.trim()).filter(Boolean);
-      const results = document.getElementById('results');
+    // Inicializar con la primera página
+    updateZoomBtn();
 
-      results.innerHTML = `
-        <div class="card">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
-            <div>
-              <p style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:#A88A8A">Total de invitados</p>
-              <p class="counter">${names.length} invitados</p>
-            </div>
-            <button class="btn btn-outline" onclick="copyAll()">📋 Copiar todos los enlaces</button>
-          </div>
-          <div id="guestRows">
-            ${names.map(name => {
-              const slug = slugify(name);
-              const url = base + '?i=' + slug;
-              const waMsg = encodeURIComponent(`Hola ${name} 💕\n\nBryan y Stefany te invitan a su boda el 03 de octubre de 2026.\n\nAquí está tu invitación especial:\n${url}\n\n¡Los esperamos con todo el amor! 🌹`);
-              const waUrl = `https://wa.me/?text=${waMsg}`;
-              return `
-                <div class="guest-row">
-                  <div>
-                    <p class="guest-name">${name}</p>
-                    <p class="guest-link">${url}</p>
-                  </div>
-                  <button class="copy-btn" onclick="copyLink('${url}', this)">Copiar</button>
-                  <a class="wa-btn" href="${waUrl}" target="_blank">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    WhatsApp
-                  </a>
-                </div>`;
-            }).join('')}
-          </div>
-        </div>`;
+    if(navEl) {
+      navEl.style.display = 'flex';
+      const numEl = document.getElementById('bookPageNum');
+      if(numEl) numEl.textContent = `1 / ${entries.length}`;
     }
 
-    function copyLink(url, btn) {
-      navigator.clipboard.writeText(url).then(() => {
-        btn.textContent = '✓ Copiado'; btn.style.background='var(--rose)'; btn.style.color='white';
-        setTimeout(() => { btn.textContent='Copiar'; btn.style.background=''; btn.style.color=''; }, 2000);
-      });
-    }
+  } catch(err) {
+    console.warn('StPageFlip error:', err);
+  }
+}
 
-    function copyAll() {
-      const links = Array.from(document.querySelectorAll('.guest-link')).map(el => el.textContent).join('\n');
-      navigator.clipboard.writeText(links).then(() => alert('✅ Todos los enlaces copiados al portapapeles'));
+function initBook() {
+  document.querySelectorAll('.book-emoji').forEach(btn => {
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.book-emoji').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedEmoji = btn.dataset.e;
+    });
+  });
+
+  const ta = $('bookMessage');
+  if(ta) ta.addEventListener('input',()=>{ $('bookChars').textContent = 280-ta.value.length; });
+
+  // Foto
+  const preview  = $('bookPhotoPreview');
+  const input    = $('bookPhotoInput');
+  const img      = $('bookPhotoImg');
+  const placeholder = $('bookPhotoPlaceholder');
+  const removeBtn   = $('bookPhotoRemove');
+
+  if(preview) {
+    preview.addEventListener('click',()=>{ if(!uploadedPhotoUrl) input.click(); });
+    input.addEventListener('change', async e=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        img.src=ev.target.result; img.style.display='block';
+        placeholder.style.display='none'; removeBtn.style.display='flex';
+      };
+      reader.readAsDataURL(file);
+      if(C.cloudinary.cloudName !== 'TU_CLOUD_NAME') {
+        uploadedPhotoUrl = await uploadCloudinary(file);
+      } else {
+        uploadedPhotoUrl = '_local_';
+      }
+    });
+    if(removeBtn) removeBtn.addEventListener('click',e=>{
+      e.stopPropagation();
+      img.src=''; img.style.display='none';
+      placeholder.style.display='flex'; removeBtn.style.display='none';
+      uploadedPhotoUrl=''; input.value='';
+    });
+  }
+
+  $('bookSubmit').addEventListener('click', submitFirma);
+
+  const prevB=$('bookPrev'), nextB=$('bookNext');
+  if(prevB) prevB.addEventListener('click', () => {
+    if(!pageFlipInstance) return;
+    // 'bottom' activa la animación completa de vuelta de hoja
+    pageFlipInstance.flipPrev('bottom');
+  });
+  if(nextB) nextB.addEventListener('click', () => {
+    if(!pageFlipInstance) return;
+    pageFlipInstance.flipNext('bottom');
+  });
+
+  // Cargar mensajes desde Airtable al iniciar
+  loadFromAirtable();
+}
+
+async function uploadCloudinary(file) {
+  const fd=new FormData();
+  fd.append('file',file); fd.append('upload_preset',C.cloudinary.uploadPreset);
+  try {
+    const res=await fetch(`https://api.cloudinary.com/v1_1/${C.cloudinary.cloudName}/image/upload`,{method:'POST',body:fd});
+    const d=await res.json(); return d.secure_url||'';
+  } catch{ return ''; }
+}
+
+async function submitFirma() {
+  const msg=($('bookMessage').value||'').trim();
+  if(!msg){ toast('Por favor escribe un mensaje 🌹'); return; }
+  const btn=$('bookSubmit'); btn.disabled=true;
+  $('bookSubmitLabel').textContent='Enviando...';
+
+  const esPrivado = C.libroFirmas.permitirMensajePrivado ? ($('bookPrivate')?.checked||false) : false;
+  const firma = {
+    nombre: GUEST||'Invitado especial', mensaje:msg, emoji:selectedEmoji,
+    fotoUrl:uploadedPhotoUrl, privado:esPrivado,
+    fecha:new Date().toLocaleDateString('es-HN',{day:'numeric',month:'long',year:'numeric'}),
+    ts:Date.now()
+  };
+
+  // Guardar en Airtable (fuente central) y localmente como respaldo
+  if(C.airtable.apiKey!=='TU_API_KEY_AQUI') {
+    try { await saveAirtable(firma); } catch(e){ console.warn('Airtable error:',e); }
+  }
+  // También local como caché rápida
+  const all=getAllEntries(); all.unshift(firma);
+  localStorage.setItem(BOOK_KEY,JSON.stringify(all));
+
+  $('bookMessage').value=''; $('bookChars').textContent='280';
+  uploadedPhotoUrl=''; if($('bookPhotoInput')) $('bookPhotoInput').value='';
+  const pi=$('bookPhotoImg'); if(pi){pi.src='';pi.style.display='none';}
+  const pp=$('bookPhotoPlaceholder'); if(pp) pp.style.display='flex';
+  const pr=$('bookPhotoRemove'); if(pr) pr.style.display='none';
+
+  btn.disabled=false; $('bookSubmitLabel').textContent='Firmar el libro 💌';
+  bookPage=0;
+  // Recargar desde Airtable para mostrar todos los mensajes actualizados
+  await loadFromAirtable();
+  toast(esPrivado?'🔒 Mensaje enviado — solo Bryan & Stefany lo verán 💌':'💌 ¡Tu mensaje fue enviado con amor!');
+}
+
+// Cache en memoria de los registros de Airtable
+let airtableCache = [];
+
+// Cargar TODOS los mensajes desde Airtable (fuente única de verdad)
+async function loadFromAirtable() {
+  if(C.airtable.apiKey==='TU_API_KEY_AQUI') {
+    // Sin Airtable → usar localStorage
+    renderEntries(getAllEntries().filter(e=>!e.privado));
+    return;
+  }
+  const container=$('bookEntries');
+  if(container) container.innerHTML='<p class="book-entries__empty" style="opacity:.5">Cargando mensajes... 🌹</p>';
+
+  try {
+    const {apiKey,baseId,tableId}=C.airtable;
+    // Traer registros públicos ordenados por fecha de creación descendente
+    const url=`https://api.airtable.com/v0/${baseId}/${tableId}?filterByFormula=${encodeURIComponent('{EsPublico}=TRUE()')}&sort[0][field]=Fecha&sort[0][direction]=desc&maxRecords=100`;
+    const res=await fetch(url,{headers:{'Authorization':`Bearer ${apiKey}`}});
+    const data=await res.json();
+    if(data.records) {
+      airtableCache = data.records.map(r=>({
+        nombre:  r.fields.Nombre  || 'Invitado',
+        mensaje: r.fields.Mensaje || '',
+        emoji:   r.fields.Emoji   || '❤️',
+        fotoUrl: r.fields.FotoUrl || '',
+        fecha:   r.fields.Fecha   || '',
+        privado: !r.fields.EsPublico
+      }));
+      renderEntries(airtableCache);
     }
-  </script>
-</body>
-</html>
+  } catch(e) {
+    console.warn('Error leyendo Airtable:', e);
+    // Fallback a localStorage si falla la red
+    renderEntries(getAllEntries().filter(e=>!e.privado));
+  }
+}
+
+function getAllEntries(){ try{return JSON.parse(localStorage.getItem(BOOK_KEY))||[];}catch{return[];} }
+
+function renderEntries(entries) {
+  if(!C.libroFirmas.mostrarMensajesPublicos) entries=[];
+  // Ordenar: fotos primero
+  const sorted = [...(entries||[])].sort((a,b)=>{
+    const aH = a.fotoUrl&&a.fotoUrl!=='_local_'&&a.fotoUrl!=='';
+    const bH = b.fotoUrl&&b.fotoUrl!=='_local_'&&b.fotoUrl!=='';
+    return (aH&&!bH)?-1:((!aH&&bH)?1:0);
+  });
+  // Usar StPageFlip
+  buildFlipBook(sorted);
+}
+
+async function saveAirtable(firma) {
+  const {apiKey,baseId,tableId}=C.airtable;
+  const res=await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`,{
+    method:'POST',
+    headers:{'Authorization':`Bearer ${apiKey}`,'Content-Type':'application/json'},
+    body:JSON.stringify({fields:{
+      Nombre:   firma.nombre,
+      Mensaje:  firma.mensaje,
+      Emoji:    firma.emoji,
+      FotoUrl:  firma.fotoUrl||'',
+      EsPublico:!firma.privado,
+      Fecha:    firma.fecha
+    }})
+  });
+  if(!res.ok) throw new Error('Airtable save failed: '+res.status);
+}
+
+// ── Toast ─────────────────────────────────────────────
+const toastStyle = document.createElement('style');
+toastStyle.textContent='@keyframes fadeUpT{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+document.head.appendChild(toastStyle);
+
+function toast(msg){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--rose-deep);color:white;padding:.85rem 2rem;border-radius:50px;font-family:var(--font-b);font-size:.85rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);white-space:nowrap;animation:fadeUpT .4s both';
+  t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),4000);
+}
+
+// ── Admin ─────────────────────────────────────────────
+let ac=0,at;
+$('adminTrigger').addEventListener('click',()=>{
+  ac++; clearTimeout(at); at=setTimeout(()=>ac=0,800);
+  if(ac>=3){ ac=0; adminLogin(); }
+});
+function adminLogin(){
+  const ov=mkOv();
+  ov.innerHTML=`<div style="background:white;border-radius:24px;padding:2.5rem;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+    <h2 style="font-family:var(--font-d);font-size:2rem;color:var(--rose-deep);margin-bottom:.5rem">Panel de edición</h2>
+    <input type="password" id="ap" placeholder="Contraseña" style="width:100%;padding:.65rem .9rem;border:1.5px solid var(--blush);border-radius:10px;font-family:var(--font-b);font-size:.88rem;outline:none;margin:1rem 0;box-sizing:border-box"/>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="chkP()" style="padding:.7rem 1.5rem;background:var(--rose-deep);color:white;border:none;border-radius:50px;font-family:var(--font-b);cursor:pointer">Entrar</button>
+      <button onclick="closeOv()" style="padding:.7rem 1.5rem;background:none;border:1.5px solid var(--rose-deep);color:var(--rose-deep);border-radius:50px;font-family:var(--font-b);cursor:pointer">Cancelar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  $('ap').addEventListener('keydown',e=>{ if(e.key==='Enter') window.chkP(); });
+  setTimeout(()=>ov.style.opacity='1',10);
+}
+window.chkP=function(){ if($('ap').value==='bodadanieljissel'){ closeOv(); toast('✅ Panel admin activo'); } else { $('ap').style.borderColor='#e55'; $('ap').value=''; $('ap').placeholder='Contraseña incorrecta'; }};
+function mkOv(){ window.closeOv(); const o=document.createElement('div'); o.id='adm-o'; o.style.cssText='position:fixed;inset:0;background:rgba(20,10,10,.6);backdrop-filter:blur(6px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;transition:opacity .3s'; return o; }
+window.closeOv=function(){ const e=$('adm-o'); if(e){e.style.opacity='0';setTimeout(()=>e.remove(),300);} };
+
+// ── INIT ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  applyConfig();
+  startCountdown();
+  spawnPetals('videoPetals', 12);
+  spawnPetals('petalsHero', 10);
+  initVideo();
+  initMusic();
+  initVoice();
+  initBook();
+  initVestModal();
+  initAutoNudge();
+  initPWA();
+});
+
+// ── PWA — banner "Agregar a pantalla de inicio" ───────
+function initPWA() {
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Mostrar banner elegante después de 8 segundos
+    setTimeout(() => {
+      const banner = document.createElement('div');
+      banner.id = 'pwaBanner';
+      banner.style.cssText = `
+        position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
+        background:rgba(255,250,247,.96);backdrop-filter:blur(8px);
+        border:1px solid var(--blush);border-radius:50px;
+        padding:.65rem 1.25rem;display:flex;align-items:center;gap:.75rem;
+        font-family:var(--font-b);font-size:.78rem;color:var(--rose-deep);
+        box-shadow:0 4px 20px rgba(58,42,42,.15);z-index:3000;
+        animation:fadeUpT .5s both;white-space:nowrap;
+      `;
+      banner.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v10M7 10l5-5 5 5"/><path d="M5 20h14"/></svg>
+        <span>Agregar a pantalla de inicio</span>
+        <button style="background:var(--rose-deep);color:white;border:none;border-radius:20px;padding:.3rem .9rem;font-family:var(--font-b);font-size:.75rem;cursor:pointer;" onclick="installPWA()">Agregar</button>
+        <button style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:1.1rem;padding:0 .2rem;" onclick="this.closest('#pwaBanner').remove()">✕</button>
+      `;
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 15000);
+    }, 8000);
+  });
+  window.installPWA = async function() {
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('pwaBanner')?.remove();
+  };
+}
+
+// ── Auto-nudge scroll (2 mini scrolls después de 1.5s) ─
+function initAutoNudge() {
+  // Solo cuando la invitación sea visible y el usuario no haya hecho scroll
+  const inv = document.getElementById('invitation');
+  if(!inv) return;
+  const observer = new MutationObserver(() => {
+    if(inv.classList.contains('visible')) {
+      observer.disconnect();
+      setTimeout(() => {
+        if(window.scrollY > 10) return; // ya scrolleó solo
+        // Nudge 1: baja
+        window.scrollBy({ top: 80, behavior: 'smooth' });
+        setTimeout(() => {
+          if(window.scrollY > 100) return;
+          // Nudge 2: sube
+          window.scrollBy({ top: -80, behavior: 'smooth' });
+          setTimeout(() => {
+            if(window.scrollY > 20) return;
+            // Nudge 3: baja de nuevo más pronunciado
+            window.scrollBy({ top: 90, behavior: 'smooth' });
+            setTimeout(() => {
+              if(window.scrollY > 120) return;
+              // Nudge 4: vuelve arriba
+              window.scrollBy({ top: -90, behavior: 'smooth' });
+            }, 650);
+          }, 650);
+        }, 650);
+      }, 1500);
+    }
+  });
+  observer.observe(inv, { attributes: true, attributeFilter: ['class'] });
+}
+
+// ══════════════════════════════════════════════════════
+//  MODAL VESTIMENTA
+// ══════════════════════════════════════════════════════
+
+// Definir cuáles fotos son de hombres y cuáles de mujeres
+// NOTA: las primeras 8 = hombres, las siguientes 8 = mujeres
+// Ajusta este número cuando Bryan confirme la división
+function initVestModal() {
+  const gridH = document.getElementById('vestGridHombres');
+  const gridD = document.getElementById('vestGridDamas');
+  if(!gridH || !gridD) return;
+
+  // Hombres: h1.jpg, h2.jpg, h3.jpg...
+  for(let i = 1; i <= 20; i++) {
+    const div = document.createElement('div');
+    div.className = 'vest-grid__item';
+    div.innerHTML = `<img src="img/vestimenta/h${i}.jpg" alt="Caballero ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
+    gridH.appendChild(div);
+  }
+
+  // Mujeres: m1.jpg, m2.jpg, m3.jpg...
+  for(let i = 1; i <= 20; i++) {
+    const div = document.createElement('div');
+    div.className = 'vest-grid__item';
+    div.innerHTML = `<img src="img/vestimenta/m${i}.jpg" alt="Dama ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
+    gridD.appendChild(div);
+  }
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') {
+      window.closeVestModal();
+      document.getElementById('vestImgModal')?.classList.remove('open');
+    }
+  });
+  // Cerrar tocando el fondo
+  document.getElementById('vestModal')?.addEventListener('click', e => {
+    if(e.target.id === 'vestModal') window.closeVestModal();
+  });
+}
+
+let _vestScrollY = 0;
+
+window.openVestModal = function() {
+  const m = document.getElementById('vestModal');
+  if(!m) return;
+  // Guardar scroll y bloquear SOLO con overflow — sin position:fixed
+  // para que el modal position:fixed siga siendo visible
+  _vestScrollY = window.scrollY || window.pageYOffset;
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  m.scrollTop = 0;
+  m.classList.add('open');
+};
+
+window.closeVestModal = function() {
+  // Restaurar scroll y regresar a la misma posición
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+  const m = document.getElementById('vestModal');
+  if(m) m.classList.remove('open');
+  // Regresar exactamente donde estaba sin parpadeo
+  window.scrollTo({ top: _vestScrollY, behavior: 'instant' });
+};
+
+// Lightbox dentro del modal
+window.openVestImg = function(src) {
+  let lb = document.getElementById('vestImgModal');
+  if(!lb) {
+    lb = document.createElement('div');
+    lb.id = 'vestImgModal';
+    lb.style.cssText = 'position:fixed;inset:0;background:rgba(10,5,5,.95);z-index:3000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;cursor:pointer';
+    lb.innerHTML = '<img style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px"/>';
+    lb.onclick = () => lb.classList.remove('open');
+    document.body.appendChild(lb);
+  }
+  lb.querySelector('img').src = src;
+  lb.classList.add('open');
+  setTimeout(() => lb.style.opacity = '1', 10);
+};
+// Hacer toggle de clase con opacity
+const vestImgStyle = document.createElement('style');
+vestImgStyle.textContent = '#vestImgModal.open{opacity:1!important;pointer-events:all}#vestImgModal:not(.open){opacity:0!important;pointer-events:none}';
+document.head.appendChild(vestImgStyle);

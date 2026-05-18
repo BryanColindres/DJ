@@ -1,0 +1,14 @@
+{
+  "name": "Bryan & Stefany · 03.10.2026",
+  "short_name": "B & S 2026",
+  "description": "Invitación de boda de Bryan Daniel & Stefany Jissel",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F7EFE8",
+  "theme_color": "#9B6B6B",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
