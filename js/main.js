@@ -445,12 +445,16 @@ let uploadedPhotoUrl = '';
 let pageFlipInstance = null;
 let mobileBookPage   = 0;
 let mobileBookData   = [];
+let _bookBuilding    = false; // mutex — evita doble rebuild
 
 function buildFlipBook(entries) {
+  if(_bookBuilding) return; // ya hay un rebuild en curso
+  _bookBuilding = true;
+
   const flipCont = document.getElementById('bookFlipContainer');
   const emptyMsg = document.getElementById('bookEmptyMsg');
   const navEl    = document.getElementById('bookNav');
-  if(!flipCont) return;
+  if(!flipCont) { _bookBuilding = false; return; }
 
   if(pageFlipInstance) {
     try { pageFlipInstance.destroy(); } catch(e){}
@@ -465,6 +469,7 @@ function buildFlipBook(entries) {
   if(!entries || !entries.length) {
     if(emptyMsg) emptyMsg.style.display = 'block';
     if(navEl) navEl.style.display = 'none';
+    _bookBuilding = false;
     return;
   }
   if(emptyMsg) emptyMsg.style.display = 'none';
@@ -571,6 +576,7 @@ function buildFlipBook(entries) {
   } catch(err) {
     console.warn('StPageFlip error:', err);
   }
+  _bookBuilding = false; // liberar mutex
 }
 
 function initBook() {
@@ -687,11 +693,11 @@ async function submitFirma() {
   btn.disabled=false; $('bookSubmitLabel').textContent='Firmar el libro 💌';
   toast(esPrivado?'🔒 Mensaje enviado — solo Bryan & Stefany lo verán 💌':'💌 ¡Tu mensaje fue enviado con amor!');
 
-  // Agregar la nueva firma al caché en memoria sin destruir el flipbook
-  if(!esPrivado) {
-    airtableCache.unshift(firma);
-  }
-  // Reconstruir el flipbook con un delay para que el DOM se estabilice
+  // Agregar al caché local
+  if(!esPrivado) airtableCache.unshift(firma);
+
+  // UN SOLO rebuild, con delay para que el DOM se estabilice
+  // SIN loadFromAirtable en background — evita el doble rebuild que rompe todo
   setTimeout(() => {
     const sorted = [...airtableCache].sort((a,b)=>{
       const aH = a.fotoUrl&&a.fotoUrl!=='_local_'&&a.fotoUrl!=='';
@@ -699,11 +705,7 @@ async function submitFirma() {
       return (aH&&!bH)?-1:((!aH&&bH)?1:0);
     });
     buildFlipBook(sorted);
-    // Sincronizar con Airtable en segundo plano
-    if(C.airtable.apiKey!=='TU_API_KEY_AQUI') {
-      loadFromAirtable().catch(()=>{});
-    }
-  }, 350);
+  }, 500);
 }
 
 // Cache en memoria de los registros de Airtable
