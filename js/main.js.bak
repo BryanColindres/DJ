@@ -228,7 +228,7 @@ function initVideo() {
   const skipBtn    = $('videoSkip');
   const invitation = $('invitation');
   // El delay en segundos viene del config — fácil de cambiar
-  const delayMs    = (C.videoDelay || 2) * 1000;
+  const delayMs    = (C.videoDelay || 0) * 1000;
 
   const tapMsg    = $('videoTapMsg');
   let playStarted  = false;
