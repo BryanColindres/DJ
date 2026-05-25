@@ -669,10 +669,25 @@ async function submitFirma() {
   const pr=$('bookPhotoRemove'); if(pr) pr.style.display='none';
 
   btn.disabled=false; $('bookSubmitLabel').textContent='Firmar el libro 💌';
-  bookPage=0;
-  // Recargar desde Airtable para mostrar todos los mensajes actualizados
-  await loadFromAirtable();
   toast(esPrivado?'🔒 Mensaje enviado — solo Bryan & Stefany lo verán 💌':'💌 ¡Tu mensaje fue enviado con amor!');
+
+  // Agregar la nueva firma al caché en memoria sin destruir el flipbook
+  if(!esPrivado) {
+    airtableCache.unshift(firma);
+  }
+  // Reconstruir el flipbook con un delay para que el DOM se estabilice
+  setTimeout(() => {
+    const sorted = [...airtableCache].sort((a,b)=>{
+      const aH = a.fotoUrl&&a.fotoUrl!=='_local_'&&a.fotoUrl!=='';
+      const bH = b.fotoUrl&&b.fotoUrl!=='_local_'&&b.fotoUrl!=='';
+      return (aH&&!bH)?-1:((!aH&&bH)?1:0);
+    });
+    buildFlipBook(sorted);
+    // Sincronizar con Airtable en segundo plano
+    if(C.airtable.apiKey!=='TU_API_KEY_AQUI') {
+      loadFromAirtable().catch(()=>{});
+    }
+  }, 350);
 }
 
 // Cache en memoria de los registros de Airtable
@@ -685,8 +700,7 @@ async function loadFromAirtable() {
     renderEntries(getAllEntries().filter(e=>!e.privado));
     return;
   }
-  const container=$('bookEntries');
-  if(container) container.innerHTML='<p class="book-entries__empty" style="opacity:.5">Cargando mensajes... 🌹</p>';
+  // No modificar el contenedor aquí — buildFlipBook maneja su propio estado
 
   try {
     const {apiKey,baseId,tableId}=C.airtable;
