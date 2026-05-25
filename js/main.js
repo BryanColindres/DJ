@@ -472,9 +472,11 @@ function buildFlipBook(entries) {
   mobileBookData = entries;
   mobileBookPage = 0;
 
-  const rightPage = document.getElementById('bookPageRight');
-  const rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 500 };
   const isMobile = window.innerWidth < 750;
+  const rightPage = document.getElementById('bookPageRight');
+  // Usar dimensiones cacheadas si el rect devuelve 0 (post-submit layout flux)
+  let rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 500 };
+  if(rect.width < 50) rect = { width: isMobile ? window.innerWidth * 0.9 : 340, height: 500 };
   const W = Math.max(220, Math.floor(rect.width * 0.92));
   const H = isMobile
     ? Math.max(380, Math.floor(window.innerHeight * 0.52))
@@ -518,8 +520,8 @@ function buildFlipBook(entries) {
       drawShadow: true, maxShadowOpacity: 0.4,
       showCover: false,
       mobileScrollSupport: false,
-      disableFlipByClick: true,
-      useMouseEvents:    false,   // Solo botones — sin arrastre táctil
+      disableFlipByClick: true,  // no flip al tocar
+      useMouseEvents: true,      // necesario para flip programático
     });
 
     pageFlipInstance.loadFromHTML(flipCont.querySelectorAll('.stpf-page'));
@@ -605,6 +607,8 @@ function initBook() {
       } else {
         uploadedPhotoUrl = '_local_';
       }
+      // Nota: si el archivo es HEIC/LIVE/video y no sube,
+      // se mostrará el preview local solamente
     });
     if(removeBtn) removeBtn.addEventListener('click',e=>{
       e.stopPropagation();
@@ -619,12 +623,14 @@ function initBook() {
   const prevB=$('bookPrev'), nextB=$('bookNext');
   if(prevB) prevB.addEventListener('click', () => {
     if(!pageFlipInstance) return;
-    // 'bottom' activa la animación completa de vuelta de hoja
-    pageFlipInstance.flipPrev('bottom');
+    const cur = pageFlipInstance.getCurrentPageIndex();
+    if(cur > 0) pageFlipInstance.flip(cur - 1);
   });
   if(nextB) nextB.addEventListener('click', () => {
     if(!pageFlipInstance) return;
-    pageFlipInstance.flipNext('bottom');
+    const cur   = pageFlipInstance.getCurrentPageIndex();
+    const total = pageFlipInstance.getPageCount();
+    if(cur < total - 1) pageFlipInstance.flip(cur + 1);
   });
 
   // Cargar mensajes desde Airtable al iniciar
@@ -633,11 +639,21 @@ function initBook() {
 
 async function uploadCloudinary(file) {
   const fd=new FormData();
-  fd.append('file',file); fd.append('upload_preset',C.cloudinary.uploadPreset);
+  fd.append('file', file);
+  fd.append('upload_preset', C.cloudinary.uploadPreset);
+  // Detectar si es video para usar el endpoint correcto
+  const isVideo = file.type.startsWith('video/') || /\.(mov|mp4|avi|webm)$/i.test(file.name);
+  const endpoint = isVideo ? 'video' : 'image';
   try {
-    const res=await fetch(`https://api.cloudinary.com/v1_1/${C.cloudinary.cloudName}/image/upload`,{method:'POST',body:fd});
-    const d=await res.json(); return d.secure_url||'';
-  } catch{ return ''; }
+    const res=await fetch(`https://api.cloudinary.com/v1_1/${C.cloudinary.cloudName}/${endpoint}/upload`,{method:'POST',body:fd});
+    const d=await res.json();
+    // Para videos, Cloudinary devuelve una URL de video; convertirla a gif/jpg para preview
+    if(isVideo && d.secure_url) {
+      // Usar la versión jpg del primer frame del video
+      return d.secure_url.replace('/upload/', '/upload/f_jpg,so_0/').replace(/\.[^.]+$/, '.jpg');
+    }
+    return d.secure_url||'';
+  } catch(e) { console.warn('Cloudinary upload error:', e); return ''; }
 }
 
 async function submitFirma() {
