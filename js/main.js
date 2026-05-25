@@ -320,7 +320,7 @@ function showNameScreen(callback) {
       ns.style.display = 'none';
       callback();
     }, 700);
-  }, 2800);
+  }, 4800);
 }
 
 // ── Música ────────────────────────────────────────────
@@ -380,26 +380,55 @@ function initVoice() {
 
 // ── Lightbox ──────────────────────────────────────────
 let lbImgs=[], lbIdx=0;
+function closeLightbox() {
+  const lb=$('lightbox');
+  if(!lb || !lb.classList.contains('open')) return;
+  lb.classList.remove('open');
+  document.body.style.overflow='';
+  // Quitar el estado del historial para que el botón atrás no salga
+  if(history.state && history.state.lightbox) history.back();
+}
+
+function openLightbox(srcs, idx) {
+  const lb=$('lightbox'), img=$('lbImg');
+  if(!lb) return;
+  lbImgs = srcs; lbIdx = idx;
+  img.src = lbImgs[lbIdx];
+  lb.classList.add('open');
+  document.body.style.overflow='hidden';
+  // Pushear estado para interceptar botón "atrás" del navegador
+  history.pushState({ lightbox: true }, '');
+}
+
 function initLightbox() {
   const lb=$('lightbox'), img=$('lbImg');
   if(!lb) return;
-  $('lbClose').onclick = ()=>{ lb.classList.remove('open'); document.body.style.overflow=''; };
+
+  $('lbClose').onclick = closeLightbox;
   $('lbPrev').onclick  = ()=>{ lbIdx=(lbIdx-1+lbImgs.length)%lbImgs.length; img.src=lbImgs[lbIdx]; };
   $('lbNext').onclick  = ()=>{ lbIdx=(lbIdx+1)%lbImgs.length; img.src=lbImgs[lbIdx]; };
-  lb.onclick = e=>{ if(e.target===lb){ lb.classList.remove('open'); document.body.style.overflow=''; }};
+  lb.onclick = e=>{ if(e.target===lb) closeLightbox(); };
   document.addEventListener('keydown',e=>{
     if(!lb.classList.contains('open')) return;
-    if(e.key==='Escape'){ lb.classList.remove('open'); document.body.style.overflow=''; }
+    if(e.key==='Escape') closeLightbox();
     if(e.key==='ArrowLeft') { lbIdx=(lbIdx-1+lbImgs.length)%lbImgs.length; img.src=lbImgs[lbIdx]; }
     if(e.key==='ArrowRight'){ lbIdx=(lbIdx+1)%lbImgs.length; img.src=lbImgs[lbIdx]; }
   });
+
+  // Botón "atrás" del navegador cierra el lightbox en vez de salir
+  window.addEventListener('popstate', (e) => {
+    if(lb.classList.contains('open')) {
+      lb.classList.remove('open');
+      document.body.style.overflow='';
+    }
+  });
+
+  // Galería principal
   const gg=$('galleryGrid');
   if(gg) gg.addEventListener('click',e=>{
     const item=e.target.closest('.gal-item'); if(!item) return;
-    lbImgs=Array.from(document.querySelectorAll('.gal-item img')).map(i=>i.src);
-    lbIdx=parseInt(item.dataset.idx)||0;
-    img.src=lbImgs[lbIdx];
-    lb.classList.add('open'); document.body.style.overflow='hidden';
+    const srcs=Array.from(document.querySelectorAll('.gal-item img')).map(i=>i.src);
+    openLightbox(srcs, parseInt(item.dataset.idx)||0);
   });
 }
 
@@ -489,8 +518,8 @@ function buildFlipBook(entries) {
       drawShadow: true, maxShadowOpacity: 0.4,
       showCover: false,
       mobileScrollSupport: false,
-      disableFlipByClick: false,
-      useMouseEvents: true,
+      disableFlipByClick: true,
+      useMouseEvents:    false,   // Solo botones — sin arrastre táctil
     });
 
     pageFlipInstance.loadFromHTML(flipCont.querySelectorAll('.stpf-page'));
@@ -762,46 +791,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initBook();
   initVestModal();
   initAutoNudge();
-  initPWA();
 });
 
-// ── PWA — banner "Agregar a pantalla de inicio" ───────
-function initPWA() {
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    // Mostrar banner elegante después de 8 segundos
-    setTimeout(() => {
-      const banner = document.createElement('div');
-      banner.id = 'pwaBanner';
-      banner.style.cssText = `
-        position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
-        background:rgba(255,250,247,.96);backdrop-filter:blur(8px);
-        border:1px solid var(--blush);border-radius:50px;
-        padding:.65rem 1.25rem;display:flex;align-items:center;gap:.75rem;
-        font-family:var(--font-b);font-size:.78rem;color:var(--rose-deep);
-        box-shadow:0 4px 20px rgba(58,42,42,.15);z-index:3000;
-        animation:fadeUpT .5s both;white-space:nowrap;
-      `;
-      banner.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v10M7 10l5-5 5 5"/><path d="M5 20h14"/></svg>
-        <span>Agregar a pantalla de inicio</span>
-        <button style="background:var(--rose-deep);color:white;border:none;border-radius:20px;padding:.3rem .9rem;font-family:var(--font-b);font-size:.75rem;cursor:pointer;" onclick="installPWA()">Agregar</button>
-        <button style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:1.1rem;padding:0 .2rem;" onclick="this.closest('#pwaBanner').remove()">✕</button>
-      `;
-      document.body.appendChild(banner);
-      setTimeout(() => banner.remove(), 15000);
-    }, 8000);
-  });
-  window.installPWA = async function() {
-    if(!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    document.getElementById('pwaBanner')?.remove();
-  };
-}
+
 
 // ── Auto-nudge scroll (2 mini scrolls después de 1.5s) ─
 function initAutoNudge() {
@@ -852,7 +844,7 @@ function initVestModal() {
   for(let i = 1; i <= 20; i++) {
     const div = document.createElement('div');
     div.className = 'vest-grid__item';
-    div.innerHTML = `<img src="img/vestimenta/h${i}.jpg" alt="Caballero ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
+    div.innerHTML = `<img src="img/vestimenta/h${i}.jpg" alt="Caballero ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openLightbox([this.src],0)"/>`;
     gridH.appendChild(div);
   }
 
@@ -860,7 +852,7 @@ function initVestModal() {
   for(let i = 1; i <= 20; i++) {
     const div = document.createElement('div');
     div.className = 'vest-grid__item';
-    div.innerHTML = `<img src="img/vestimenta/m${i}.jpg" alt="Dama ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openVestImg(this.src)"/>`;
+    div.innerHTML = `<img src="img/vestimenta/m${i}.jpg" alt="Dama ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openLightbox([this.src],0)"/>`;
     gridD.appendChild(div);
   }
 
