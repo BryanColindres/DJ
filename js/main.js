@@ -441,143 +441,95 @@ let bookPage = 0;
 const PER_PAGE = 4;
 let uploadedPhotoUrl = '';
 
-// ── StPageFlip — libro de firmas ──────────────────────
-let pageFlipInstance = null;
-let _currentBookIdx  = 0;   // página actual — la rastreamos nosotros
-let _bookEntries     = [];   // copia de entradas del libro
+// ══════════════════════════════════════════════════════
+// LIBRO DE FIRMAS — CSS flip propio (100% confiable)
+// ══════════════════════════════════════════════════════
+let _bookIdx      = 0;
+let _bookData     = [];
+let _bookFlipping = false;
 
 function buildFlipBook(entries) {
-  const flipCont = document.getElementById('bookFlipContainer');
+  _bookData = entries || [];
+  _bookIdx  = 0;
+
   const emptyMsg = document.getElementById('bookEmptyMsg');
   const navEl    = document.getElementById('bookNav');
-  if(!flipCont) return;
 
-  // Destruir instancia anterior
-  if(pageFlipInstance) {
-    try { pageFlipInstance.destroy(); } catch(e){}
-    pageFlipInstance = null;
-  }
-  flipCont.innerHTML = '';
-  const oldZoom = document.getElementById('bookZoomBtn');
-  if(oldZoom) oldZoom.remove();
-
-  if(!entries || !entries.length) {
+  if(!_bookData.length) {
     if(emptyMsg) emptyMsg.style.display = 'block';
-    if(navEl) navEl.style.display = 'none';
+    if(navEl)    navEl.style.display    = 'none';
+    const fc = document.getElementById('bookFlipContainer');
+    if(fc) fc.innerHTML = '';
     return;
   }
+
   if(emptyMsg) emptyMsg.style.display = 'none';
-  _bookEntries    = entries;
-  _currentBookIdx = 0;
+  if(navEl)    navEl.style.display    = _bookData.length > 1 ? 'flex' : 'none';
 
-  const isMobile = window.innerWidth < 750;
-  const rightPage = document.getElementById('bookPageRight');
-  let rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 500 };
-  if(!rect.width || rect.width < 50) {
-    rect = { width: isMobile ? window.innerWidth * 0.88 : 340, height: 500 };
+  _renderPage(0, 'none');
+  _updateCounter();
+}
+
+function _buildPageHTML(e) {
+  const hasPhoto = e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '';
+  return `
+    <div class="stpf-page__inner">
+      <div class="stpf-page__header">
+        <span class="stpf-page__name">${e.nombre}</span>
+        <span class="stpf-page__emoji">${e.emoji}</span>
+      </div>
+      <div class="stpf-page__line"></div>
+      <p class="stpf-page__msg">"${e.mensaje}"</p>
+      <p class="stpf-page__date">${e.fecha}</p>
+      ${hasPhoto ? `<div class="stpf-page__photo book-css-photo">
+        <img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy"/>
+        <button class="book-zoom-float" onclick="openVestImg('${e.fotoUrl}')">🔍</button>
+      </div>` : ''}
+    </div>`;
+}
+
+function _renderPage(idx, direction) {
+  const container = document.getElementById('bookFlipContainer');
+  if(!container || !_bookData.length) return;
+
+  const e = _bookData[idx];
+  if(!e) return;
+
+  const newPage = document.createElement('div');
+  newPage.className = 'book-css-page';
+  newPage.innerHTML = _buildPageHTML(e);
+
+  if(direction === 'none') {
+    container.innerHTML = '';
+    container.appendChild(newPage);
+    return;
   }
-  const W = Math.max(220, Math.floor(rect.width * 0.92));
-  const H = isMobile
-    ? Math.max(380, Math.floor(window.innerHeight * 0.50))
-    : Math.max(320, Math.floor(rect.height * 0.65));
 
-  flipCont.style.width  = W + 'px';
-  flipCont.style.height = H + 'px';
+  const oldPage = container.querySelector('.book-css-page');
+  const outAnim = direction === 'next' ? 'css-flip-out-left' : 'css-flip-out-right';
+  const inAnim  = direction === 'next' ? 'css-flip-in-right' : 'css-flip-in-left';
 
-  entries.forEach((e, i) => {
-    const page = document.createElement('div');
-    page.className = 'stpf-page';
-    const hasPhoto = e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '';
-    const photoH   = hasPhoto ? Math.floor(H * (isMobile ? 0.44 : 0.52)) : 0;
-    page.innerHTML = `
-      <div class="stpf-page__inner">
-        <div class="stpf-page__header">
-          <span class="stpf-page__name">${e.nombre}</span>
-          <span class="stpf-page__emoji">${e.emoji}</span>
-        </div>
-        <div class="stpf-page__line"></div>
-        <p class="stpf-page__msg">"${e.mensaje}"</p>
-        <p class="stpf-page__date">${e.fecha}</p>
-        ${hasPhoto ? `<div class="stpf-page__photo" style="height:${photoH}px">
-          <img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy"/>
-        </div>` : ''}
-        <span class="stpf-page__num">${i + 1}</span>
-      </div>`;
-    flipCont.appendChild(page);
-  });
+  if(oldPage) {
+    oldPage.classList.add(outAnim);
+    setTimeout(() => {
+      container.innerHTML = '';
+      newPage.style.animation = `${inAnim} 0.4s cubic-bezier(0.25,0.46,0.45,0.94) forwards`;
+      container.appendChild(newPage);
+      setTimeout(() => {
+        newPage.style.animation = '';
+        _bookFlipping = false;
+      }, 420);
+    }, 300);
+  } else {
+    container.appendChild(newPage);
+    _bookFlipping = false;
+  }
+}
 
-  try {
-    pageFlipInstance = new St.PageFlip(flipCont, {
-      width: W, height: H, size: 'fixed',
-      minWidth: 150, maxWidth: W,
-      minHeight: 200, maxHeight: H,
-      flippingTime: 700,
-      usePortrait: true, autoSize: false,
-      drawShadow: true, maxShadowOpacity: 0.4,
-      showCover: false,
-      mobileScrollSupport: false,
-      disableFlipByClick: true,
-      useMouseEvents: false,   // SIN interacción táctil — solo botones
-    });
-    pageFlipInstance.loadFromHTML(flipCont.querySelectorAll('.stpf-page'));
-
-    // Zoom externo
-    const zoomBtn = document.createElement('button');
-    zoomBtn.id = 'bookZoomBtn';
-    zoomBtn.className = 'book-zoom-float';
-    zoomBtn.textContent = '🔍';
-    zoomBtn.style.display = 'none';
-    const wrap = document.getElementById('bookFlipWrap');
-    if(wrap) wrap.appendChild(zoomBtn);
-
-    function updateBook() {
-      const e = _bookEntries[_currentBookIdx];
-      if(!e) return;
-      // Actualizar contador
-      const numEl = document.getElementById('bookPageNum');
-      if(numEl) numEl.textContent = `${_currentBookIdx + 1} / ${_bookEntries.length}`;
-      // Actualizar zoom
-      if(e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '') {
-        zoomBtn.style.display = 'flex';
-        zoomBtn.onclick = () => openVestImg(e.fotoUrl);
-      } else {
-        zoomBtn.style.display = 'none';
-      }
-    }
-
-    // Escuchar evento flip para sincronizar nuestro índice
-    pageFlipInstance.on('flip', (e) => {
-      _currentBookIdx = e.data; // StPageFlip pasa el índice en e.data
-      updateBook();
-    });
-
-    updateBook();
-    if(navEl) {
-      navEl.style.display = 'flex';
-      const numEl = document.getElementById('bookPageNum');
-      if(numEl) numEl.textContent = `1 / ${entries.length}`;
-    }
-
-  } catch(err) {
-    console.warn('StPageFlip error:', err);
-    // Fallback: mostrar sin animación
-    flipCont.innerHTML = entries.map((e,i) => `
-      <div class="stpf-page" style="display:${i===0?'block':'none'};width:100%;height:100%">
-        <div class="stpf-page__inner">
-          <div class="stpf-page__header">
-            <span class="stpf-page__name">${e.nombre}</span>
-            <span class="stpf-page__emoji">${e.emoji}</span>
-          </div>
-          <p class="stpf-page__msg">"${e.mensaje}"</p>
-          <p class="stpf-page__date">${e.fecha}</p>
-        </div>
-      </div>`).join('');
-    // Nav fallback
-    if(navEl) {
-      navEl.style.display = 'flex';
-      const numEl = document.getElementById('bookPageNum');
-      if(numEl) numEl.textContent = `1 / ${entries.length}`;
-    }
+function _updateCounter() {
+  const numEl = document.getElementById('bookPageNum');
+  if(numEl && _bookData.length) {
+    numEl.textContent = `${_bookIdx + 1} / ${_bookData.length}`;
   }
 }
 
@@ -630,20 +582,18 @@ function initBook() {
 
   const prevB=$('bookPrev'), nextB=$('bookNext');
   if(prevB) prevB.addEventListener('click', () => {
-    if(_currentBookIdx > 0) {
-      _currentBookIdx--;
-      if(pageFlipInstance) pageFlipInstance.flip(_currentBookIdx);
-      const numEl = document.getElementById('bookPageNum');
-      if(numEl) numEl.textContent = `${_currentBookIdx+1} / ${_bookEntries.length}`;
-    }
+    if(_bookFlipping || _bookIdx <= 0) return;
+    _bookFlipping = true;
+    _bookIdx--;
+    _renderPage(_bookIdx, 'prev');
+    _updateCounter();
   });
   if(nextB) nextB.addEventListener('click', () => {
-    if(_currentBookIdx < _bookEntries.length - 1) {
-      _currentBookIdx++;
-      if(pageFlipInstance) pageFlipInstance.flip(_currentBookIdx);
-      const numEl = document.getElementById('bookPageNum');
-      if(numEl) numEl.textContent = `${_currentBookIdx+1} / ${_bookEntries.length}`;
-    }
+    if(_bookFlipping || _bookIdx >= _bookData.length - 1) return;
+    _bookFlipping = true;
+    _bookIdx++;
+    _renderPage(_bookIdx, 'next');
+    _updateCounter();
   });
 
   // Cargar mensajes desde Airtable al iniciar
@@ -700,18 +650,14 @@ async function submitFirma() {
   btn.disabled=false; $('bookSubmitLabel').textContent='Firmar el libro 💌';
   toast(esPrivado?'🔒 Mensaje enviado — solo Bryan & Stefany lo verán 💌':'💌 ¡Tu mensaje fue enviado con amor!');
 
-  // Agregar al caché local
+  // Agregar al caché y reconstruir — CSS flip no necesita delay
   if(!esPrivado) airtableCache.unshift(firma);
-
-  // Rebuild único con delay
-  setTimeout(() => {
-    const sorted = [...airtableCache].sort((a,b)=>{
-      const aH = a.fotoUrl&&a.fotoUrl!=='_local_'&&a.fotoUrl!=='';
-      const bH = b.fotoUrl&&b.fotoUrl!=='_local_'&&b.fotoUrl!=='';
-      return (aH&&!bH)?-1:((!aH&&bH)?1:0);
-    });
-    buildFlipBook(sorted);
-  }, 600);
+  const sortedAfter = [...airtableCache].sort((a,b)=>{
+    const aH = a.fotoUrl&&a.fotoUrl!=='_local_'&&a.fotoUrl!=='';
+    const bH = b.fotoUrl&&b.fotoUrl!=='_local_'&&b.fotoUrl!=='';
+    return (aH&&!bH)?-1:((!aH&&bH)?1:0);
+  });
+  buildFlipBook(sortedAfter);
 }
 
 // Cache en memoria de los registros de Airtable
