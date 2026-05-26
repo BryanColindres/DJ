@@ -556,19 +556,39 @@ function initBook() {
     preview.addEventListener('click',()=>{ if(!uploadedPhotoUrl) input.click(); });
     input.addEventListener('change', async e=>{
       const file = e.target.files[0]; if(!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        img.src=ev.target.result; img.style.display='block';
-        placeholder.style.display='none'; removeBtn.style.display='flex';
-      };
-      reader.readAsDataURL(file);
+
+      // Mostrar spinner mientras sube
+      placeholder.style.display='none';
+      img.style.display='none';
+      removeBtn.style.display='flex';
+      preview.innerHTML += '<div id="bookUploadSpinner" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--cream);border-radius:12px;gap:.3rem"><div style="width:24px;height:24px;border:2px solid var(--blush);border-top-color:var(--rose-mid);border-radius:50%;animation:spin .7s linear infinite"></div><span style="font-size:.6rem;color:var(--text-light);letter-spacing:.08em">Subiendo...</span></div>';
+
       if(C.cloudinary.cloudName !== 'TU_CLOUD_NAME') {
         uploadedPhotoUrl = await uploadCloudinary(file);
+        // Quitar spinner y mostrar imagen convertida desde Cloudinary
+        const spinner = document.getElementById('bookUploadSpinner');
+        if(spinner) spinner.remove();
+        if(uploadedPhotoUrl) {
+          img.src = uploadedPhotoUrl;
+          img.style.display = 'block';
+        } else {
+          // Si falla, intentar preview local
+          const reader = new FileReader();
+          reader.onload = ev => { img.src=ev.target.result; img.style.display='block'; };
+          reader.readAsDataURL(file);
+          toast('⚠️ La foto subió pero puede no verse en todos los dispositivos');
+        }
       } else {
+        // Sin Cloudinary: preview local
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const spinner = document.getElementById('bookUploadSpinner');
+          if(spinner) spinner.remove();
+          img.src=ev.target.result; img.style.display='block';
+        };
+        reader.readAsDataURL(file);
         uploadedPhotoUrl = '_local_';
       }
-      // Nota: si el archivo es HEIC/LIVE/video y no sube,
-      // se mostrará el preview local solamente
     });
     if(removeBtn) removeBtn.addEventListener('click',e=>{
       e.stopPropagation();
