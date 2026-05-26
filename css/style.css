@@ -1069,8 +1069,45 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
   animation: fadeUp .8s .8s both;
 }
 
-/* ══ LIBRO — permitir scroll sobre el canvas ══════════ */
-#bookFlipContainer,
-#bookFlipContainer canvas {
-  touch-action: pan-y !important;
+/* ══ CSS FLIP BOOK — animaciones de página ════════════ */
+#bookFlipContainer {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 300px;
+  overflow: hidden;
 }
+.book-css-page {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #FFFAF7 0%, #F7EFE8 100%);
+  border-radius: 4px;
+}
+.book-css-photo {
+  flex: 1;
+  min-height: 120px;
+  position: relative;
+}
+
+/* Salida hacia izquierda (siguiente) */
+@keyframes css-flip-out-left {
+  0%   { transform: perspective(900px) rotateY(0deg) translateX(0); opacity: 1; }
+  100% { transform: perspective(900px) rotateY(-25deg) translateX(-60%); opacity: 0; }
+}
+/* Salida hacia derecha (anterior) */
+@keyframes css-flip-out-right {
+  0%   { transform: perspective(900px) rotateY(0deg) translateX(0); opacity: 1; }
+  100% { transform: perspective(900px) rotateY(25deg) translateX(60%); opacity: 0; }
+}
+/* Entrada desde derecha */
+@keyframes css-flip-in-right {
+  0%   { transform: perspective(900px) rotateY(25deg) translateX(60%); opacity: 0; }
+  100% { transform: perspective(900px) rotateY(0deg) translateX(0); opacity: 1; }
+}
+/* Entrada desde izquierda */
+@keyframes css-flip-in-left {
+  0%   { transform: perspective(900px) rotateY(-25deg) translateX(-60%); opacity: 0; }
+  100% { transform: perspective(900px) rotateY(0deg) translateX(0); opacity: 1; }
+}
+.css-flip-out-left  { animation: css-flip-out-left  0.30s ease-in  forwards; }
+.css-flip-out-right { animation: css-flip-out-right 0.30s ease-in  forwards; }
