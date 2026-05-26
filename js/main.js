@@ -557,17 +557,21 @@ function initBook() {
     input.addEventListener('change', async e=>{
       const file = e.target.files[0]; if(!file) return;
 
-      // Mostrar spinner mientras sube
+      // Mostrar spinner mientras sube — usando createElement para no destruir referencias
       placeholder.style.display='none';
       img.style.display='none';
       removeBtn.style.display='flex';
-      preview.innerHTML += '<div id="bookUploadSpinner" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--cream);border-radius:12px;gap:.3rem"><div style="width:24px;height:24px;border:2px solid var(--blush);border-top-color:var(--rose-mid);border-radius:50%;animation:spin .7s linear infinite"></div><span style="font-size:.6rem;color:var(--text-light);letter-spacing:.08em">Subiendo...</span></div>';
+      const spinner = document.createElement('div');
+      spinner.id = 'bookUploadSpinner';
+      spinner.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--cream);border-radius:12px;gap:.3rem';
+      spinner.innerHTML = '<div style="width:24px;height:24px;border:2px solid var(--blush);border-top-color:var(--rose-mid);border-radius:50%;animation:spin .7s linear infinite"></div><span style="font-size:.6rem;color:var(--text-light);letter-spacing:.08em">Subiendo...</span>';
+      preview.appendChild(spinner);
 
       if(C.cloudinary.cloudName !== 'TU_CLOUD_NAME') {
         uploadedPhotoUrl = await uploadCloudinary(file);
         // Quitar spinner y mostrar imagen convertida desde Cloudinary
-        const spinner = document.getElementById('bookUploadSpinner');
-        if(spinner) spinner.remove();
+        const sp = document.getElementById('bookUploadSpinner');
+        if(sp) sp.remove();
         if(uploadedPhotoUrl) {
           img.src = uploadedPhotoUrl;
           img.style.display = 'block';
