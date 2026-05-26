@@ -441,50 +441,44 @@ let bookPage = 0;
 const PER_PAGE = 4;
 let uploadedPhotoUrl = '';
 
-// ── StPageFlip — libro de firmas realista ─────────────
+// ── StPageFlip — libro de firmas ──────────────────────
 let pageFlipInstance = null;
-let mobileBookPage   = 0;
-let mobileBookData   = [];
-let _bookBuilding    = false; // mutex — evita doble rebuild
+let _currentBookIdx  = 0;   // página actual — la rastreamos nosotros
+let _bookEntries     = [];   // copia de entradas del libro
 
 function buildFlipBook(entries) {
-  if(_bookBuilding) return; // ya hay un rebuild en curso
-  _bookBuilding = true;
-
   const flipCont = document.getElementById('bookFlipContainer');
   const emptyMsg = document.getElementById('bookEmptyMsg');
   const navEl    = document.getElementById('bookNav');
-  if(!flipCont) { _bookBuilding = false; return; }
+  if(!flipCont) return;
 
+  // Destruir instancia anterior
   if(pageFlipInstance) {
     try { pageFlipInstance.destroy(); } catch(e){}
     pageFlipInstance = null;
   }
   flipCont.innerHTML = '';
-
-  // Quitar zoom flotante previo si existe
   const oldZoom = document.getElementById('bookZoomBtn');
   if(oldZoom) oldZoom.remove();
 
   if(!entries || !entries.length) {
     if(emptyMsg) emptyMsg.style.display = 'block';
     if(navEl) navEl.style.display = 'none';
-    _bookBuilding = false;
     return;
   }
   if(emptyMsg) emptyMsg.style.display = 'none';
-
-  mobileBookData = entries;
-  mobileBookPage = 0;
+  _bookEntries    = entries;
+  _currentBookIdx = 0;
 
   const isMobile = window.innerWidth < 750;
   const rightPage = document.getElementById('bookPageRight');
-  // Usar dimensiones cacheadas si el rect devuelve 0 (post-submit layout flux)
   let rect = rightPage ? rightPage.getBoundingClientRect() : { width: 340, height: 500 };
-  if(rect.width < 50) rect = { width: isMobile ? window.innerWidth * 0.9 : 340, height: 500 };
+  if(!rect.width || rect.width < 50) {
+    rect = { width: isMobile ? window.innerWidth * 0.88 : 340, height: 500 };
+  }
   const W = Math.max(220, Math.floor(rect.width * 0.92));
   const H = isMobile
-    ? Math.max(380, Math.floor(window.innerHeight * 0.52))
+    ? Math.max(380, Math.floor(window.innerHeight * 0.50))
     : Math.max(320, Math.floor(rect.height * 0.65));
 
   flipCont.style.width  = W + 'px';
@@ -494,9 +488,7 @@ function buildFlipBook(entries) {
     const page = document.createElement('div');
     page.className = 'stpf-page';
     const hasPhoto = e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '';
-    const photoRatio = isMobile ? 0.44 : 0.52;
-    const photoH = hasPhoto ? Math.floor(H * photoRatio) : 0;
-
+    const photoH   = hasPhoto ? Math.floor(H * (isMobile ? 0.44 : 0.52)) : 0;
     page.innerHTML = `
       <div class="stpf-page__inner">
         <div class="stpf-page__header">
@@ -507,7 +499,7 @@ function buildFlipBook(entries) {
         <p class="stpf-page__msg">"${e.mensaje}"</p>
         <p class="stpf-page__date">${e.fecha}</p>
         ${hasPhoto ? `<div class="stpf-page__photo" style="height:${photoH}px">
-          <img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy" data-src="${e.fotoUrl}"/>
+          <img src="${e.fotoUrl}" alt="${e.nombre}" loading="lazy"/>
         </div>` : ''}
         <span class="stpf-page__num">${i + 1}</span>
       </div>`;
@@ -516,8 +508,7 @@ function buildFlipBook(entries) {
 
   try {
     pageFlipInstance = new St.PageFlip(flipCont, {
-      width: W, height: H,
-      size: 'fixed',
+      width: W, height: H, size: 'fixed',
       minWidth: 150, maxWidth: W,
       minHeight: 200, maxHeight: H,
       flippingTime: 700,
@@ -525,48 +516,42 @@ function buildFlipBook(entries) {
       drawShadow: true, maxShadowOpacity: 0.4,
       showCover: false,
       mobileScrollSupport: false,
-      disableFlipByClick: true,  // no flip al tocar
-      useMouseEvents: true,      // necesario para flip programático
+      disableFlipByClick: true,
+      useMouseEvents: false,   // SIN interacción táctil — solo botones
     });
-
     pageFlipInstance.loadFromHTML(flipCont.querySelectorAll('.stpf-page'));
 
-    // Botón de zoom FUERA del canvas — se actualiza con cada flip
+    // Zoom externo
     const zoomBtn = document.createElement('button');
     zoomBtn.id = 'bookZoomBtn';
     zoomBtn.className = 'book-zoom-float';
     zoomBtn.textContent = '🔍';
-    zoomBtn.title = 'Ver foto';
     zoomBtn.style.display = 'none';
-
-    // Insertar justo después del flipCont, dentro del wrap
     const wrap = document.getElementById('bookFlipWrap');
     if(wrap) wrap.appendChild(zoomBtn);
 
-    // Función que actualiza el zoom según la página actual
-    function updateZoomBtn() {
-      const idx = pageFlipInstance.getCurrentPageIndex();
-      const entry = mobileBookData[idx];
-      if(entry && entry.fotoUrl && entry.fotoUrl !== '_local_' && entry.fotoUrl !== '') {
+    function updateBook() {
+      const e = _bookEntries[_currentBookIdx];
+      if(!e) return;
+      // Actualizar contador
+      const numEl = document.getElementById('bookPageNum');
+      if(numEl) numEl.textContent = `${_currentBookIdx + 1} / ${_bookEntries.length}`;
+      // Actualizar zoom
+      if(e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '') {
         zoomBtn.style.display = 'flex';
-        zoomBtn.onclick = () => openVestImg(entry.fotoUrl);
-        mobileBookPage = idx;
+        zoomBtn.onclick = () => openVestImg(e.fotoUrl);
       } else {
         zoomBtn.style.display = 'none';
       }
     }
 
-    pageFlipInstance.on('flip', () => {
-      const cur   = pageFlipInstance.getCurrentPageIndex() + 1;
-      const total = pageFlipInstance.getPageCount();
-      const numEl = document.getElementById('bookPageNum');
-      if(numEl) numEl.textContent = `${cur} / ${total}`;
-      updateZoomBtn();
+    // Escuchar evento flip para sincronizar nuestro índice
+    pageFlipInstance.on('flip', (e) => {
+      _currentBookIdx = e.data; // StPageFlip pasa el índice en e.data
+      updateBook();
     });
 
-    // Inicializar con la primera página
-    updateZoomBtn();
-
+    updateBook();
     if(navEl) {
       navEl.style.display = 'flex';
       const numEl = document.getElementById('bookPageNum');
@@ -575,8 +560,25 @@ function buildFlipBook(entries) {
 
   } catch(err) {
     console.warn('StPageFlip error:', err);
+    // Fallback: mostrar sin animación
+    flipCont.innerHTML = entries.map((e,i) => `
+      <div class="stpf-page" style="display:${i===0?'block':'none'};width:100%;height:100%">
+        <div class="stpf-page__inner">
+          <div class="stpf-page__header">
+            <span class="stpf-page__name">${e.nombre}</span>
+            <span class="stpf-page__emoji">${e.emoji}</span>
+          </div>
+          <p class="stpf-page__msg">"${e.mensaje}"</p>
+          <p class="stpf-page__date">${e.fecha}</p>
+        </div>
+      </div>`).join('');
+    // Nav fallback
+    if(navEl) {
+      navEl.style.display = 'flex';
+      const numEl = document.getElementById('bookPageNum');
+      if(numEl) numEl.textContent = `1 / ${entries.length}`;
+    }
   }
-  _bookBuilding = false; // liberar mutex
 }
 
 function initBook() {
@@ -628,15 +630,20 @@ function initBook() {
 
   const prevB=$('bookPrev'), nextB=$('bookNext');
   if(prevB) prevB.addEventListener('click', () => {
-    if(!pageFlipInstance) return;
-    const cur = pageFlipInstance.getCurrentPageIndex();
-    if(cur > 0) pageFlipInstance.flip(cur - 1);
+    if(_currentBookIdx > 0) {
+      _currentBookIdx--;
+      if(pageFlipInstance) pageFlipInstance.flip(_currentBookIdx);
+      const numEl = document.getElementById('bookPageNum');
+      if(numEl) numEl.textContent = `${_currentBookIdx+1} / ${_bookEntries.length}`;
+    }
   });
   if(nextB) nextB.addEventListener('click', () => {
-    if(!pageFlipInstance) return;
-    const cur   = pageFlipInstance.getCurrentPageIndex();
-    const total = pageFlipInstance.getPageCount();
-    if(cur < total - 1) pageFlipInstance.flip(cur + 1);
+    if(_currentBookIdx < _bookEntries.length - 1) {
+      _currentBookIdx++;
+      if(pageFlipInstance) pageFlipInstance.flip(_currentBookIdx);
+      const numEl = document.getElementById('bookPageNum');
+      if(numEl) numEl.textContent = `${_currentBookIdx+1} / ${_bookEntries.length}`;
+    }
   });
 
   // Cargar mensajes desde Airtable al iniciar
@@ -696,8 +703,7 @@ async function submitFirma() {
   // Agregar al caché local
   if(!esPrivado) airtableCache.unshift(firma);
 
-  // UN SOLO rebuild, con delay para que el DOM se estabilice
-  // SIN loadFromAirtable en background — evita el doble rebuild que rompe todo
+  // Rebuild único con delay
   setTimeout(() => {
     const sorted = [...airtableCache].sort((a,b)=>{
       const aH = a.fotoUrl&&a.fotoUrl!=='_local_'&&a.fotoUrl!=='';
@@ -705,7 +711,7 @@ async function submitFirma() {
       return (aH&&!bH)?-1:((!aH&&bH)?1:0);
     });
     buildFlipBook(sorted);
-  }, 500);
+  }, 600);
 }
 
 // Cache en memoria de los registros de Airtable
