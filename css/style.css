@@ -1111,3 +1111,8 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
 }
 .css-flip-out-left  { animation: css-flip-out-left  0.30s ease-in  forwards; }
 .css-flip-out-right { animation: css-flip-out-right 0.30s ease-in  forwards; }
+
+/* ══ SPINNER UPLOAD FOTO ══════════════════════════════ */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
