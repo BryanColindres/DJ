@@ -601,22 +601,31 @@ function initBook() {
 }
 
 async function uploadCloudinary(file) {
-  const fd=new FormData();
+  const fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', C.cloudinary.uploadPreset);
-  // Detectar si es video para usar el endpoint correcto
+
   const isVideo = file.type.startsWith('video/') || /\.(mov|mp4|avi|webm)$/i.test(file.name);
   const endpoint = isVideo ? 'video' : 'image';
+
   try {
-    const res=await fetch(`https://api.cloudinary.com/v1_1/${C.cloudinary.cloudName}/${endpoint}/upload`,{method:'POST',body:fd});
-    const d=await res.json();
-    // Para videos, Cloudinary devuelve una URL de video; convertirla a gif/jpg para preview
-    if(isVideo && d.secure_url) {
-      // Usar la versión jpg del primer frame del video
-      return d.secure_url.replace('/upload/', '/upload/f_jpg,so_0/').replace(/\.[^.]+$/, '.jpg');
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${C.cloudinary.cloudName}/${endpoint}/upload`,
+      { method: 'POST', body: fd }
+    );
+    const d = await res.json();
+    if(!d.secure_url) {
+      console.warn('Cloudinary no devolvió URL:', d);
+      return '';
     }
-    return d.secure_url||'';
-  } catch(e) { console.warn('Cloudinary upload error:', e); return ''; }
+    // Convertir CUALQUIER formato (HEIC, HEIF, LIVE, video) a JPG compatible
+    // f_jpg = convertir a JPG, q_auto = calidad automática, so_0 = primer frame (videos)
+    const transform = isVideo ? 'f_jpg,q_auto,so_0' : 'f_jpg,q_auto';
+    return d.secure_url.replace('/upload/', `/upload/${transform}/`).replace(/\.[^/.]+$/, '.jpg');
+  } catch(e) {
+    console.warn('Cloudinary upload error:', e);
+    return '';
+  }
 }
 
 async function submitFirma() {
