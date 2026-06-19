@@ -126,7 +126,7 @@ window.BODA_CONFIG = {
     historia3: "img/preboda6.JPG",
     galeria:   ["img/preboda1.png","img/preboda2.jpg","img/preboda3.jpg","img/preboda4.jpg","img/preboda5.JPG","img/preboda6.JPG"],
     rsvp:      "img/preboda12.JPG",
-    footer:    "img/footer.JPG"
+    footer:    "img/footer.mp4"
   },
 
   colores: {
