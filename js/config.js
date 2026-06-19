@@ -122,10 +122,10 @@ window.BODA_CONFIG = {
     verso:     "img/preboda2.jpg",
     evento:    "img/preboda3.jpg",
     historia1: "img/preboda4.jpg",
-    historia2: "img/preboda5.JPG",
-    historia3: "img/preboda6.JPG",
-    galeria:   ["img/preboda1.png","img/preboda2.jpg","img/preboda3.jpg","img/preboda4.jpg","img/preboda5.JPG","img/preboda6.JPG"],
-    rsvp:      "img/preboda12.JPG",
+    historia2: "img/preboda5.jpg",
+    historia3: "img/preboda6.jpg",
+    galeria:   ["img/preboda10.png","img/preboda11.jpg","img/preboda12.jpg","img/preboda9.jpg","img/preboda13.jpg","img/preboda14.JPG","img/preboda15.png","img/preboda16.jpg","img/preboda8.jpg","img/preboda7.jpg","img/preboda6.jpg","img/preboda5.jpg","img/preboda4.jpg","img/preboda3.jpg","img/preboda2.jpg","img/preboda1.jpg"],
+    rsvp:      "img/preboda12.jpg",
     footer:    "img/footer.mp4"
   },
 
