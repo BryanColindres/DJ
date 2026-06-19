@@ -118,8 +118,8 @@ window.BODA_CONFIG = {
   audio: { musica: "audio/musica.mp3", mensajeVoz: "audio/mensaje.mp3" },
 
   fotos: {
-    hero:      "img/hero.jpg",
-    verso:     "img/preboda2.jpg",
+    hero:      "img/preboda2.jpg",
+    verso:     "img/hero.jpg",
     evento:    "img/preboda3.jpg",
     historia1: "img/preboda4.jpg",
     historia2: "img/preboda5.jpg",
