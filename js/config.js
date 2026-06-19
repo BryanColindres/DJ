@@ -52,7 +52,7 @@ window.BODA_CONFIG = {
     { fecha:"Mayo, 2024",          titulo:"Nuestro primer viaje",   texto:"Descubrimos que viajar juntos era lo más natural del mundo y nos animamos a hacerlo, con la esperanza de poder hacerlo más seguido en el futuro.",                                                                                                                                              icono:"✈️", foto:"img/viaje.jpg" },
     { fecha:"Diciembre, 2024",     titulo:"Nuestras familias",      texto:"Hicimos una gran familia que siempre ha estado a nuestro lado, apoyándonos y guiándonos por el buen camino, siendo ejemplo de amor y temor a Dios.",                                                                                                                                           icono:"👨‍👩‍👧‍👦", foto:"img/familia.jpg" },
     { fecha:"Febrero, 2026",       titulo:"La propuesta",           texto:"El 14 de febrero, el amor quedó inmortalizado, se dijo el tan esperado: \"Si, acepto\", y entre lágrimas y sonrisas celebramos nuestro recorrido hacia el altar.",                                                                                                                             icono:"💍", foto:"img/propuesta.jpg" },
-    { fecha:"Mayo, 2026",          titulo:"La preboda",             texto:"Un día de fotos, risas y amor. La antesala del momento más especial.",                                                                                                                                                                                                                          icono:"📸", foto:"img/preboda6.png" },
+    { fecha:"Mayo, 2026",          titulo:"La preboda",             texto:"Un día de fotos, risas y amor. La antesala del momento más especial.",                                                                                                                                                                                                                          icono:"📸", foto:"img/preboda6.jpg" },
     { fecha:"03 de Octubre, 2026", titulo:"Nos casamos",            texto:"El día que prometemos amarnos, respetarnos y acompañarnos para siempre.",                                                                                                                                                                                                                      icono:"⛪", foto:"img/hero.jpg"     }
   ],
 
@@ -124,7 +124,7 @@ window.BODA_CONFIG = {
     historia1: "img/preboda4.jpg",
     historia2: "img/preboda5.jpg",
     historia3: "img/preboda7.jpg",
-    galeria:   ["img/preboda10.png","img/preboda11.jpg","img/preboda12.jpg","img/preboda9.jpg","img/preboda13.jpg","img/preboda14.JPG","img/preboda15.png","img/preboda16.jpg","img/preboda8.jpg","img/preboda7.jpg","img/preboda6.jpg","img/preboda5.jpg","img/preboda4.jpg","img/preboda3.jpg","img/preboda2.jpg","img/preboda1.jpg"],
+    galeria:   ["img/preboda10.jpg","img/preboda11.jpg","img/preboda12.jpg","img/preboda9.jpg","img/preboda13.jpg","img/preboda14.jpg","img/preboda15.jpg","img/preboda16.jpg","img/preboda8.jpg","img/preboda7.jpg","img/preboda6.jpg","img/preboda5.jpg","img/preboda4.jpg","img/preboda3.jpg","img/preboda2.jpg","img/preboda1.jpg"],
     rsvp:      "img/preboda12.jpg",
     footer:    "img/footer.mp4"
   },
