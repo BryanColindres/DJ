@@ -4,6 +4,73 @@
 const C = window.BODA_CONFIG;
 const $  = id => document.getElementById(id);
 
+// ══════════════════════════════════════════════════════
+//  MODAL STACK — sistema central para cualquier modal
+//  (lightbox, vestimenta, confirmación, etc.)
+//  Garantiza: scroll bloqueado de forma robusta en móvil +
+//  el botón "atrás" del navegador cierra el modal en vez de
+//  salir de la invitación, sin importar cuántos modales se
+//  hayan abierto en cadena (pila real, no solo un flag).
+// ══════════════════════════════════════════════════════
+const ModalStack = (() => {
+  let stack = [];      // ids de modales abiertos, en orden
+  let savedScrollY = 0;
+
+  function lockScroll() {
+    if(stack.length === 1) {
+      // Solo bloqueamos al abrir el PRIMER modal de la pila
+      savedScrollY = window.scrollY || window.pageYOffset;
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = (-savedScrollY) + 'px';
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+    }
+  }
+  function unlockScroll() {
+    if(stack.length === 0) {
+      document.documentElement.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+    }
+  }
+
+  // Abre un modal: agrega su id a la pila, bloquea scroll si es el primero,
+  // y mete un estado en el historial para que "atrás" lo cierre.
+  function open(id, closeFn) {
+    stack.push({ id, closeFn });
+    lockScroll();
+    history.pushState({ modalStack: stack.length }, '');
+  }
+
+  // Cierra el modal indicado (lo normal: llamado por la X o el fondo).
+  // Dispara history.back() para mantener el historial sincronizado;
+  // el cierre visual real ocurre en el handler de popstate.
+  function close(id) {
+    const idx = stack.findIndex(m => m.id === id);
+    if(idx === -1) return;
+    history.back();
+  }
+
+  // Maneja el botón "atrás" del navegador: cierra SOLO el modal
+  // que está en la cima de la pila, nunca sale de la invitación
+  // mientras queden modales abiertos.
+  window.addEventListener('popstate', () => {
+    if(stack.length === 0) return;
+    const top = stack.pop();
+    top.closeFn();
+    unlockScroll();
+  });
+
+  return { open, close };
+})();
+
+
 // ── Nombre del invitado desde URL ──────────────────────
 function getGuest() {
   const p = new URLSearchParams(window.location.search);
@@ -144,99 +211,103 @@ function setWAButtons(msg) {
 }
 
 // ══════════════════════════════════════════════════════
-//  CALENDARIO — Generar archivo .ics con recordatorios
+//  CALENDARIO — Menú con links directos (sin descarga)
+//  Nota: ningún link directo soporta recordatorios
+//  personalizados vía URL — eso solo lo permite un archivo
+//  .ics descargado. El usuario eligió evitar la descarga,
+//  así que cada app mostrará sus recordatorios por defecto.
 // ══════════════════════════════════════════════════════
-function initCalendarButton() {
-  const btn = $('addToCalendarBtn');
-  if(!btn) return;
-  btn.addEventListener('click', () => {
-    const ics = buildIcs();
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Boda-Bryan-y-Stefany.ics';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-  });
+function getEventTimes() {
+  // Honduras está en UTC-6 todo el año (sin horario de verano).
+  const [datePart, timePart] = C.evento.fecha.split('T');
+  const [y, mo, d] = datePart.split('-').map(Number);
+  const [h, mi, s] = (timePart || '00:00:00').split(':').map(Number);
+  const HONDURAS_OFFSET_MIN = 6 * 60;
+  const start = new Date(Date.UTC(y, mo - 1, d, h, mi, s || 0) + HONDURAS_OFFSET_MIN * 60000);
+  const end   = new Date(start.getTime() + 4 * 60 * 60 * 1000);
+  return { start, end };
 }
 
-function buildIcs() {
-  // Honduras está en UTC-6 todo el año (sin horario de verano).
-  // C.evento.fecha viene como "2026-10-03T11:00:00" sin zona —
-  // la tratamos explícitamente como hora de Honduras para que el
-  // evento quede correcto sin importar desde dónde se descargue.
-  const [datePart, timePart] = C.evento.fecha.split('T');
-  const [y, mo, d]    = datePart.split('-').map(Number);
-  const [h, mi, s]    = (timePart || '00:00:00').split(':').map(Number);
-  const HONDURAS_OFFSET_MIN = 6 * 60; // UTC-6
-  const start = new Date(Date.UTC(y, mo - 1, d, h, mi, s || 0) + HONDURAS_OFFSET_MIN * 60000);
-  const end   = new Date(start.getTime() + 4 * 60 * 60 * 1000); // duración estimada 4h
+function initCalendarButton() {
+  const btn = $('addToCalendarBtn');
+  const modal = $('calendarModal');
+  if(!btn || !modal) return;
 
-  const fmt = dt => dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const { start, end } = getEventTimes();
+  const fmtUTC = dt => dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const titulo = 'Boda de Bryan y Stefany';
+  const lugar  = `Valletal Eventos, ${C.evento.lugar}`;
+  const desc   = `¡Acompáñanos a celebrar la boda de Bryan y Stefany! ${C.evento.fechaTexto} a las ${C.evento.hora}.`;
 
-  const lugar = `Valletal Eventos, ${C.evento.lugar}`;
-  const desc  = `¡Acompáñanos a celebrar la boda de Bryan y Stefany! ${C.evento.fechaTexto} a las ${C.evento.hora}.`;
+  // Google Calendar
+  const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titulo)}&dates=${fmtUTC(start)}/${fmtUTC(end)}&details=${encodeURIComponent(desc)}&location=${encodeURIComponent(lugar)}`;
+  // Outlook (web)
+  const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(titulo)}&startdt=${start.toISOString()}&enddt=${end.toISOString()}&body=${encodeURIComponent(desc)}&location=${encodeURIComponent(lugar)}&path=/calendar/action/compose&rru=addevent`;
+  // Yahoo Calendar
+  const yahooFmt = dt => dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const durationMin = Math.round((end - start) / 60000);
+  const dh = String(Math.floor(durationMin/60)).padStart(2,'0');
+  const dm = String(durationMin%60).padStart(2,'0');
+  const yahooUrl = `https://calendar.yahoo.com/?v=60&view=d&type=20&title=${encodeURIComponent(titulo)}&st=${yahooFmt(start)}&dur=${dh}${dm}&desc=${encodeURIComponent(desc)}&in_loc=${encodeURIComponent(lugar)}`;
 
-  // Recordatorios: 1 mes, 15 días, 7 días y 2 días antes (en minutos, valor negativo = antes del evento)
-  const alarms = [
-    { label: '1 mes antes',  minutes: 30 * 24 * 60 },
-    { label: '15 días antes', minutes: 15 * 24 * 60 },
-    { label: '7 días antes',  minutes: 7  * 24 * 60 },
-    { label: '2 días antes',  minutes: 2  * 24 * 60 },
-  ].map(a => [
-    'BEGIN:VALARM',
-    'ACTION:DISPLAY',
-    `DESCRIPTION:Boda de Bryan y Stefany — ${a.label}`,
-    `TRIGGER:-PT${a.minutes}M`,
-    'END:VALARM'
-  ].join('\r\n')).join('\r\n');
+  $('calGoogle').href  = googleUrl;
+  $('calOutlook').href = outlookUrl;
+  $('calYahoo').href   = yahooUrl;
 
-  return [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Bryan & Stefany Boda//ES',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'BEGIN:VEVENT',
-    `UID:boda-bryan-stefany-${start.getTime()}@bryancolindres.github.io`,
-    `DTSTAMP:${fmt(new Date())}`,
-    `DTSTART:${fmt(start)}`,
-    `DTEND:${fmt(end)}`,
-    `SUMMARY:Boda de Bryan y Stefany`,
-    `DESCRIPTION:${desc.replace(/,/g, '\\,')}`,
-    `LOCATION:${lugar.replace(/,/g, '\\,')}`,
-    alarms,
-    'END:VEVENT',
-    'END:VCALENDAR'
-  ].join('\r\n');
+  function _closeVisual() { modal.classList.remove('open'); }
+  function close() {
+    if(!modal.classList.contains('open')) return;
+    ModalStack.close('calendarModal');
+  }
+
+  btn.addEventListener('click', () => {
+    modal.classList.add('open');
+    ModalStack.open('calendarModal', _closeVisual);
+  });
+  modal.addEventListener('click', e => { if(e.target === modal) close(); });
+  // Cerrar el menú al elegir una opción (se abre en pestaña nueva)
+  modal.querySelectorAll('a').forEach(a => a.addEventListener('click', () => close()));
 }
 
 // ══════════════════════════════════════════════════════
 //  RSVP — Confirmación de asistencia con Airtable
 // ══════════════════════════════════════════════════════
 function initRsvpConfirm() {
-  const modal   = $('rsvpConfirmModal');
-  const btnYes  = $('rsvpConfirmYes');
-  const btnNo   = $('rsvpConfirmNo');
-  const sorryEl = $('rsvpConfirmSorry');
-  const btnNovio= $('whatsappBtnNovio');
-  const btnNovia= $('whatsappBtnNovia');
+  const modal     = $('rsvpConfirmModal');
+  const btnYes    = $('rsvpConfirmYes');
+  const btnNo     = $('rsvpConfirmNo');
+  const sorryEl   = $('rsvpConfirmSorry');
+  const alreadyEl = $('rsvpConfirmAlready');
+  const checkingEl= $('rsvpConfirmChecking');
+  const btnNovio  = $('whatsappBtnNovio');
+  const btnNovia  = $('whatsappBtnNovia');
   if(!modal) return;
 
   let pendingNovio = null; // 'Bryan' o 'Stefany' — a quién se confirmará
 
-  function openModal(novio) {
-    pendingNovio = novio;
-    sorryEl.style.display = 'none';
-    btnYes.style.display = 'inline-flex';
-    btnNo.style.display = 'inline-flex';
-    modal.classList.add('open');
+  function showState(state) {
+    // state: 'checking' | 'ask' | 'sorry' | 'already'
+    checkingEl.style.display = state === 'checking' ? 'block' : 'none';
+    btnYes.style.display     = state === 'ask'       ? 'inline-flex' : 'none';
+    btnNo.style.display      = state === 'ask'       ? 'inline-flex' : 'none';
+    sorryEl.style.display    = state === 'sorry'     ? 'block' : 'none';
+    alreadyEl.style.display  = state === 'already'   ? 'block' : 'none';
   }
+
+  function _closeModalVisual() { modal.classList.remove('open'); }
+
   function closeModal() {
-    modal.classList.remove('open');
+    if(!modal.classList.contains('open')) return;
+    ModalStack.close('rsvpConfirmModal');
+  }
+
+  async function openModal(novio) {
+    pendingNovio = novio;
+    modal.classList.add('open');
+    ModalStack.open('rsvpConfirmModal', _closeModalVisual);
+    showState('checking');
+    const yaConfirmo = await yaConfirmoAsistencia(GUEST || 'Invitado');
+    showState(yaConfirmo ? 'already' : 'ask');
   }
 
   if(btnNovio) btnNovio.addEventListener('click', () => openModal('Bryan'));
@@ -246,9 +317,7 @@ function initRsvpConfirm() {
   modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
 
   btnNo.addEventListener('click', () => {
-    btnYes.style.display = 'none';
-    btnNo.style.display = 'none';
-    sorryEl.style.display = 'block';
+    showState('sorry');
     setTimeout(closeModal, 2200);
   });
 
@@ -261,14 +330,32 @@ function initRsvpConfirm() {
       console.warn('No se pudo registrar en Airtable:', e);
       // Aunque falle el guardado, dejamos continuar a WhatsApp
     }
-    closeModal();
     btnYes.disabled = false;
     btnYes.textContent = 'Sí, confirmo';
+    closeModal();
     // Continuar al envío de WhatsApp
     const numero = window._rsvpNumeros[pendingNovio];
     const encoded = encodeURIComponent(window._rsvpMsg || '');
     window.open(`https://wa.me/${numero}?text=${encoded}`, '_blank');
   });
+}
+
+// Verifica en Airtable si este nombre ya confirmó antes
+async function yaConfirmoAsistencia(nombre) {
+  const cfg = C.airtableRsvp;
+  if(!cfg || !cfg.apiKey || cfg.apiKey === 'TU_API_KEY_AQUI') return false;
+  const { apiKey, baseId, tableId } = cfg;
+  const headers = { 'Authorization': `Bearer ${apiKey}` };
+  try {
+    const checkUrl = `https://api.airtable.com/v0/${baseId}/${tableId}?filterByFormula=${encodeURIComponent(`{Nombre}='${nombre.replace(/'/g, "\\'")}'`)}&maxRecords=1`;
+    const res = await fetch(checkUrl, { headers });
+    if(!res.ok) return false;
+    const data = await res.json();
+    return !!(data.records && data.records.length > 0);
+  } catch(e) {
+    console.warn('No se pudo verificar Airtable:', e);
+    return false;
+  }
 }
 
 async function registrarAsistencia(nombre) {
@@ -552,21 +639,16 @@ function initVoice() {
 }
 
 // ── Lightbox ──────────────────────────────────────────
-let lbImgs=[], lbIdx=0, _lbScrollY=0;
+let lbImgs=[], lbIdx=0;
 function closeLightbox() {
   const lb=$('lightbox');
   if(!lb || !lb.classList.contains('open')) return;
   lb.classList.remove('open');
-  // Liberar el bloqueo de scroll (position:fixed en body)
-  document.documentElement.style.overflow='';
-  document.body.style.position='';
-  document.body.style.top='';
-  document.body.style.left='';
-  document.body.style.right='';
-  document.body.style.width='';
-  window.scrollTo({ top: _lbScrollY, behavior: 'instant' });
-  // Quitar el estado del historial para que el botón atrás no salga
-  if(history.state && history.state.lightbox) history.back();
+  ModalStack.close('lightbox');
+}
+function _closeLightboxVisual() {
+  const lb=$('lightbox');
+  if(lb) lb.classList.remove('open');
 }
 
 function openLightbox(srcs, idx) {
@@ -574,19 +656,8 @@ function openLightbox(srcs, idx) {
   if(!lb) return;
   lbImgs = srcs; lbIdx = idx;
   img.src = lbImgs[lbIdx];
-  _lbScrollY = window.scrollY || window.pageYOffset;
-  // Bloqueo de scroll robusto para móvil: overflow:hidden no basta
-  // en iOS/Android porque el scroll táctil sigue moviendo el body.
-  // Congelamos el body en su posición actual con position:fixed.
-  document.documentElement.style.overflow='hidden';
-  document.body.style.position='fixed';
-  document.body.style.top=(-_lbScrollY)+'px';
-  document.body.style.left='0';
-  document.body.style.right='0';
-  document.body.style.width='100%';
   lb.classList.add('open');
-  // Pushear estado para interceptar botón "atrás" del navegador
-  history.pushState({ lightbox: true }, '');
+  ModalStack.open('lightbox', _closeLightboxVisual);
 }
 
 function initLightbox() {
@@ -602,20 +673,6 @@ function initLightbox() {
     if(e.key==='Escape') closeLightbox();
     if(e.key==='ArrowLeft') { lbIdx=(lbIdx-1+lbImgs.length)%lbImgs.length; img.src=lbImgs[lbIdx]; }
     if(e.key==='ArrowRight'){ lbIdx=(lbIdx+1)%lbImgs.length; img.src=lbImgs[lbIdx]; }
-  });
-
-  // Botón "atrás" del navegador cierra el lightbox en vez de salir
-  window.addEventListener('popstate', (e) => {
-    if(lb.classList.contains('open')) {
-      lb.classList.remove('open');
-      document.documentElement.style.overflow='';
-      document.body.style.position='';
-      document.body.style.top='';
-      document.body.style.left='';
-      document.body.style.right='';
-      document.body.style.width='';
-      window.scrollTo({ top: _lbScrollY, behavior: 'instant' });
-    }
   });
 
   // Galería principal
@@ -1082,38 +1139,18 @@ function initVestModal() {
   });
 }
 
-let _vestScrollY = 0;
-
 window.openVestModal = function() {
   const m = document.getElementById('vestModal');
   if(!m) return;
-  // Bloqueo robusto: position:fixed en body (overflow:hidden solo no
-  // basta en iOS/Android, el scroll táctil sigue moviendo la página).
-  // El modal usa position:fixed con su propio overflow-y:auto interno,
-  // así que sigue siendo scrolleable internamente sin problema.
-  _vestScrollY = window.scrollY || window.pageYOffset;
-  document.documentElement.style.overflow = 'hidden';
-  document.body.style.position = 'fixed';
-  document.body.style.top = (-_vestScrollY) + 'px';
-  document.body.style.left = '0';
-  document.body.style.right = '0';
-  document.body.style.width = '100%';
   m.scrollTop = 0;
   m.classList.add('open');
+  ModalStack.open('vestModal', () => m.classList.remove('open'));
 };
 
 window.closeVestModal = function() {
-  // Restaurar scroll y regresar a la misma posición
-  document.documentElement.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.left = '';
-  document.body.style.right = '';
-  document.body.style.width = '';
   const m = document.getElementById('vestModal');
-  if(m) m.classList.remove('open');
-  // Regresar exactamente donde estaba sin parpadeo
-  window.scrollTo({ top: _vestScrollY, behavior: 'instant' });
+  if(!m || !m.classList.contains('open')) return;
+  ModalStack.close('vestModal');
 };
 
 // Lightbox de fotos del libro de firmas — reutiliza el lightbox principal
