@@ -43,7 +43,10 @@ a{text-decoration:none;color:inherit}
 
 /* ══ MODAL CONFIRMAR ASISTENCIA ════════════════════════ */
 .rsvp-confirm-modal{
-  position:fixed;inset:0;z-index:1800;
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  height:100vh;height:100dvh;
+  width:100vw;width:100dvw;
+  z-index:1800;
   background:rgba(20,10,10,.78);
   display:flex;align-items:center;justify-content:center;
   opacity:0;pointer-events:none;
@@ -434,7 +437,7 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
 .footer__phrase{font-family:var(--font-d);font-style:italic;font-size:1.2rem;color:var(--blush)}
 
 /* ═══ LIGHTBOX ══════════════════════════════════════════ */
-.lightbox{position:fixed;inset:0;background:rgba(20,10,10,.95);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.lightbox{position:fixed;top:0;left:0;right:0;bottom:0;height:100vh;height:100dvh;width:100vw;width:100dvw;background:rgba(20,10,10,.95);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
 .lightbox.open{opacity:1;pointer-events:all}
 .lb-img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;transform:scale(.9);transition:transform .3s var(--bounce)}
 .lightbox.open .lb-img{transform:scale(1)}
@@ -785,6 +788,7 @@ cite{font-family:var(--font-b);font-size:.78rem;letter-spacing:.15em;color:var(-
 .vest-modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
+  height: 100vh; height: 100dvh;
   z-index: 1500;
   background: rgba(20,10,10,.75);
   backdrop-filter: blur(6px);
