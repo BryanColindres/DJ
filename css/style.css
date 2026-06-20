@@ -68,9 +68,16 @@ a{text-decoration:none;color:inherit}
 }
 .rsvp-confirm-modal__btns{display:flex;flex-direction:column;gap:.75rem}
 .rsvp-confirm-modal__btns .btn{justify-content:center;width:100%}
-.rsvp-confirm-modal__sorry{
-  margin-top:1.25rem;color:var(--text-mid);font-size:.92rem;
+.rsvp-confirm-modal__sorry,
+.rsvp-confirm-modal__already{
+  margin-top:1.25rem;color:var(--text-mid);
   font-family:var(--font-d);font-style:italic;font-size:1.05rem;
+  line-height:1.5;
+}
+.rsvp-confirm-modal__already{color:var(--rose-deep);font-weight:500}
+.rsvp-confirm-modal__checking{
+  color:var(--text-light);font-size:.85rem;
+  letter-spacing:.05em;margin-bottom:.5rem;
 }
 .btn-pinterest svg{color:#E60023}
 .divider-rose{display:flex;align-items:center;gap:1rem}
