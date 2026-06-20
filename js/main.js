@@ -391,12 +391,14 @@ function initVoice() {
 }
 
 // ── Lightbox ──────────────────────────────────────────
-let lbImgs=[], lbIdx=0;
+let lbImgs=[], lbIdx=0, _lbScrollY=0;
 function closeLightbox() {
   const lb=$('lightbox');
   if(!lb || !lb.classList.contains('open')) return;
   lb.classList.remove('open');
+  document.documentElement.style.overflow='';
   document.body.style.overflow='';
+  window.scrollTo({ top: _lbScrollY, behavior: 'instant' });
   // Quitar el estado del historial para que el botón atrás no salga
   if(history.state && history.state.lightbox) history.back();
 }
@@ -406,8 +408,10 @@ function openLightbox(srcs, idx) {
   if(!lb) return;
   lbImgs = srcs; lbIdx = idx;
   img.src = lbImgs[lbIdx];
-  lb.classList.add('open');
+  _lbScrollY = window.scrollY || window.pageYOffset;
+  document.documentElement.style.overflow='hidden';
   document.body.style.overflow='hidden';
+  lb.classList.add('open');
   // Pushear estado para interceptar botón "atrás" del navegador
   history.pushState({ lightbox: true }, '');
 }
@@ -431,7 +435,9 @@ function initLightbox() {
   window.addEventListener('popstate', (e) => {
     if(lb.classList.contains('open')) {
       lb.classList.remove('open');
+      document.documentElement.style.overflow='';
       document.body.style.overflow='';
+      window.scrollTo({ top: _lbScrollY, behavior: 'instant' });
     }
   });
 
@@ -889,7 +895,6 @@ function initVestModal() {
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape') {
       window.closeVestModal();
-      document.getElementById('vestImgModal')?.classList.remove('open');
     }
   });
   // Cerrar tocando el fondo
@@ -922,22 +927,16 @@ window.closeVestModal = function() {
   window.scrollTo({ top: _vestScrollY, behavior: 'instant' });
 };
 
-// Lightbox dentro del modal
+// Lightbox de fotos del libro de firmas — reutiliza el lightbox principal
+// para tener X, prev/next y que el botón "atrás" del navegador no saque
+// de la invitación, igual que en la galería.
 window.openVestImg = function(src) {
-  let lb = document.getElementById('vestImgModal');
-  if(!lb) {
-    lb = document.createElement('div');
-    lb.id = 'vestImgModal';
-    lb.style.cssText = 'position:fixed;inset:0;background:rgba(10,5,5,.95);z-index:3000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;cursor:pointer';
-    lb.innerHTML = '<img style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px"/>';
-    lb.onclick = () => lb.classList.remove('open');
-    document.body.appendChild(lb);
+  const srcs = _bookData
+    .filter(e => e.fotoUrl && e.fotoUrl !== '_local_' && e.fotoUrl !== '')
+    .map(e => e.fotoUrl);
+  let idx = srcs.indexOf(src);
+  if(idx < 0) idx = 0;
+  if(typeof openLightbox === 'function') {
+    openLightbox(srcs, idx);
   }
-  lb.querySelector('img').src = src;
-  lb.classList.add('open');
-  setTimeout(() => lb.style.opacity = '1', 10);
 };
-// Hacer toggle de clase con opacity
-const vestImgStyle = document.createElement('style');
-vestImgStyle.textContent = '#vestImgModal.open{opacity:1!important;pointer-events:all}#vestImgModal:not(.open){opacity:0!important;pointer-events:none}';
-document.head.appendChild(vestImgStyle);
