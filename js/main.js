@@ -396,8 +396,13 @@ function closeLightbox() {
   const lb=$('lightbox');
   if(!lb || !lb.classList.contains('open')) return;
   lb.classList.remove('open');
+  // Liberar el bloqueo de scroll (position:fixed en body)
   document.documentElement.style.overflow='';
-  document.body.style.overflow='';
+  document.body.style.position='';
+  document.body.style.top='';
+  document.body.style.left='';
+  document.body.style.right='';
+  document.body.style.width='';
   window.scrollTo({ top: _lbScrollY, behavior: 'instant' });
   // Quitar el estado del historial para que el botón atrás no salga
   if(history.state && history.state.lightbox) history.back();
@@ -409,8 +414,15 @@ function openLightbox(srcs, idx) {
   lbImgs = srcs; lbIdx = idx;
   img.src = lbImgs[lbIdx];
   _lbScrollY = window.scrollY || window.pageYOffset;
+  // Bloqueo de scroll robusto para móvil: overflow:hidden no basta
+  // en iOS/Android porque el scroll táctil sigue moviendo el body.
+  // Congelamos el body en su posición actual con position:fixed.
   document.documentElement.style.overflow='hidden';
-  document.body.style.overflow='hidden';
+  document.body.style.position='fixed';
+  document.body.style.top=(-_lbScrollY)+'px';
+  document.body.style.left='0';
+  document.body.style.right='0';
+  document.body.style.width='100%';
   lb.classList.add('open');
   // Pushear estado para interceptar botón "atrás" del navegador
   history.pushState({ lightbox: true }, '');
@@ -436,7 +448,11 @@ function initLightbox() {
     if(lb.classList.contains('open')) {
       lb.classList.remove('open');
       document.documentElement.style.overflow='';
-      document.body.style.overflow='';
+      document.body.style.position='';
+      document.body.style.top='';
+      document.body.style.left='';
+      document.body.style.right='';
+      document.body.style.width='';
       window.scrollTo({ top: _lbScrollY, behavior: 'instant' });
     }
   });
@@ -908,11 +924,17 @@ let _vestScrollY = 0;
 window.openVestModal = function() {
   const m = document.getElementById('vestModal');
   if(!m) return;
-  // Guardar scroll y bloquear SOLO con overflow — sin position:fixed
-  // para que el modal position:fixed siga siendo visible
+  // Bloqueo robusto: position:fixed en body (overflow:hidden solo no
+  // basta en iOS/Android, el scroll táctil sigue moviendo la página).
+  // El modal usa position:fixed con su propio overflow-y:auto interno,
+  // así que sigue siendo scrolleable internamente sin problema.
   _vestScrollY = window.scrollY || window.pageYOffset;
   document.documentElement.style.overflow = 'hidden';
-  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = (-_vestScrollY) + 'px';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
   m.scrollTop = 0;
   m.classList.add('open');
 };
@@ -920,7 +942,11 @@ window.openVestModal = function() {
 window.closeVestModal = function() {
   // Restaurar scroll y regresar a la misma posición
   document.documentElement.style.overflow = '';
-  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
   const m = document.getElementById('vestModal');
   if(m) m.classList.remove('open');
   // Regresar exactamente donde estaba sin parpadeo
