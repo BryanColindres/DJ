@@ -49,7 +49,7 @@ window.BODA_CONFIG = {
     { fecha:"2022",                titulo:"Primeras conversaciones", texto:"Nuestra amistad se fue haciendo cada vez más grande y llegamos a compartir experiencias pasadas y planes a futuro. Y poco a poco la amistad se fue transformando en algo más, hasta el punto de que en nuestras conversaciones del futuro nos visualizábamos juntos.",                          icono:"💬", foto:"img/primeras_conv.jpg" },
     { fecha:"Enero, 2023",         titulo:"Primera cita",           texto:"Inolvidable cita, donde ambos, finalmente, nos abrimos y confesamos lo que ya llevaba días sembrado en nuestro interior. Desde entonces, las citas y los planes se convirtieron en el motor de nuestra vida.",                                                                                  icono:"🌹", foto:"img/primera_cita.jpg" },
     { fecha:"10 de abril, 2023",   titulo:"Nos hicimos novios",     texto:"Luego de hacer muy larga la espera, decidimos dar el paso que nuestros corazones ya habían elegido desde hacía tiempo. Así comenzó oficialmente nuestra historia como novios, una etapa llena de amor, sueños compartidos.",                                                                   icono:"💑", foto:"img/novios.jpg" },
-    { fecha:"Mayo, 2024",          titulo:"Nuestro primer viaje",   texto:"Descubrimos que viajar juntos era lo más natural del mundo, y nos animamos a emprender nuevas aventuras con la ilusión de que fueran cada vez más frecuentes.",                                                                                                                                              icono:"✈️", foto:"img/viaje.jpg" },
+    { fecha:"Mayo, 2024",          titulo:"Nuestro primer viaje",   texto:"Descubrimos que viajar juntos era lo más natural del mundo y nos animamos a hacerlo, con la esperanza de poder hacerlo más seguido en el futuro.",                                                                                                                                              icono:"✈️", foto:"img/viaje.jpg" },
     { fecha:"Diciembre, 2024",     titulo:"Nuestras familias",      texto:"Hicimos una gran familia que siempre ha estado a nuestro lado, apoyándonos y guiándonos por el buen camino, siendo ejemplo de amor y temor a Dios.",                                                                                                                                           icono:"👨‍👩‍👧‍👦", foto:"img/familia.jpg" },
     { fecha:"Febrero, 2026",       titulo:"La propuesta",           texto:"El 14 de febrero, el amor quedó inmortalizado, se dijo el tan esperado: \"Si, acepto\", y entre lágrimas y sonrisas celebramos nuestro recorrido hacia el altar.",                                                                                                                             icono:"💍", foto:"img/propuesta.jpg" },
     { fecha:"Mayo, 2026",          titulo:"La preboda",             texto:"Un día de fotos, risas y amor. La antesala del momento más especial.",                                                                                                                                                                                                                          icono:"📸", foto:"img/preboda17.jpg" },
@@ -92,11 +92,18 @@ window.BODA_CONFIG = {
     uploadPreset: "boda_jissel_daniel"
   },
 
-  // ── AIRTABLE ─────────────────────────────────────────
+  // ── AIRTABLE — Libro de firmas ──────────────────────
   airtable: {
     apiKey:  "pat4zs7JDR0AQGPfa.f4c24a2ca0e1e9f788656d2b54229c12e75c762a1a6b3b79819301df2f6d0e5b",
     baseId:  "app4iSEuGfWcESBSB",
     tableId: "Firmas"
+  },
+
+  // ── AIRTABLE — Confirmación de asistencia (RSVP) ────
+  airtableRsvp: {
+    apiKey:  "pat4zs7JDR0AQGPfa.f4c24a2ca0e1e9f788656d2b54229c12e75c762a1a6b3b79819301df2f6d0e5b",
+    baseId:  "appTUxjj2y9IJfKni",
+    tableId: "tbl4vr4mScL3sq99H"
   },
 
   // ── LIBRO DE FIRMAS ───────────────────────────────────

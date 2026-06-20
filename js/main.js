@@ -128,11 +128,10 @@ function applyConfig() {
 }
 
 function setWAButtons(msg) {
-  const encoded = encodeURIComponent(msg);
-  const btnNovio = document.getElementById('whatsappBtnNovio');
-  const btnNovia = document.getElementById('whatsappBtnNovia');
-  if(btnNovio) btnNovio.href = `https://wa.me/50431626792?text=${encoded}`;
-  if(btnNovia) btnNovia.href = `https://wa.me/50499223790?text=${encoded}`;
+  // Guardamos el mensaje y los números — el envío real ahora pasa
+  // primero por el modal de confirmación (rsvpConfirmModal)
+  window._rsvpMsg = msg;
+  window._rsvpNumeros = { Bryan: '50431626792', Stefany: '50499223790' };
 
   // Colores
   const r = document.documentElement.style;
@@ -142,6 +141,168 @@ function setWAButtons(msg) {
   r.setProperty('--blush',     C.colores.blush);
   r.setProperty('--cream',     C.colores.crema);
   r.setProperty('--gold',      C.colores.dorado);
+}
+
+// ══════════════════════════════════════════════════════
+//  CALENDARIO — Generar archivo .ics con recordatorios
+// ══════════════════════════════════════════════════════
+function initCalendarButton() {
+  const btn = $('addToCalendarBtn');
+  if(!btn) return;
+  btn.addEventListener('click', () => {
+    const ics = buildIcs();
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Boda-Bryan-y-Stefany.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  });
+}
+
+function buildIcs() {
+  // Honduras está en UTC-6 todo el año (sin horario de verano).
+  // C.evento.fecha viene como "2026-10-03T11:00:00" sin zona —
+  // la tratamos explícitamente como hora de Honduras para que el
+  // evento quede correcto sin importar desde dónde se descargue.
+  const [datePart, timePart] = C.evento.fecha.split('T');
+  const [y, mo, d]    = datePart.split('-').map(Number);
+  const [h, mi, s]    = (timePart || '00:00:00').split(':').map(Number);
+  const HONDURAS_OFFSET_MIN = 6 * 60; // UTC-6
+  const start = new Date(Date.UTC(y, mo - 1, d, h, mi, s || 0) + HONDURAS_OFFSET_MIN * 60000);
+  const end   = new Date(start.getTime() + 4 * 60 * 60 * 1000); // duración estimada 4h
+
+  const fmt = dt => dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+  const lugar = `Valletal Eventos, ${C.evento.lugar}`;
+  const desc  = `¡Acompáñanos a celebrar la boda de Bryan y Stefany! ${C.evento.fechaTexto} a las ${C.evento.hora}.`;
+
+  // Recordatorios: 1 mes, 15 días, 7 días y 2 días antes (en minutos, valor negativo = antes del evento)
+  const alarms = [
+    { label: '1 mes antes',  minutes: 30 * 24 * 60 },
+    { label: '15 días antes', minutes: 15 * 24 * 60 },
+    { label: '7 días antes',  minutes: 7  * 24 * 60 },
+    { label: '2 días antes',  minutes: 2  * 24 * 60 },
+  ].map(a => [
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:Boda de Bryan y Stefany — ${a.label}`,
+    `TRIGGER:-PT${a.minutes}M`,
+    'END:VALARM'
+  ].join('\r\n')).join('\r\n');
+
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Bryan & Stefany Boda//ES',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:boda-bryan-stefany-${start.getTime()}@bryancolindres.github.io`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:Boda de Bryan y Stefany`,
+    `DESCRIPTION:${desc.replace(/,/g, '\\,')}`,
+    `LOCATION:${lugar.replace(/,/g, '\\,')}`,
+    alarms,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+
+// ══════════════════════════════════════════════════════
+//  RSVP — Confirmación de asistencia con Airtable
+// ══════════════════════════════════════════════════════
+function initRsvpConfirm() {
+  const modal   = $('rsvpConfirmModal');
+  const btnYes  = $('rsvpConfirmYes');
+  const btnNo   = $('rsvpConfirmNo');
+  const sorryEl = $('rsvpConfirmSorry');
+  const btnNovio= $('whatsappBtnNovio');
+  const btnNovia= $('whatsappBtnNovia');
+  if(!modal) return;
+
+  let pendingNovio = null; // 'Bryan' o 'Stefany' — a quién se confirmará
+
+  function openModal(novio) {
+    pendingNovio = novio;
+    sorryEl.style.display = 'none';
+    btnYes.style.display = 'inline-flex';
+    btnNo.style.display = 'inline-flex';
+    modal.classList.add('open');
+  }
+  function closeModal() {
+    modal.classList.remove('open');
+  }
+
+  if(btnNovio) btnNovio.addEventListener('click', () => openModal('Bryan'));
+  if(btnNovia) btnNovia.addEventListener('click', () => openModal('Stefany'));
+
+  // Cerrar tocando el fondo oscuro
+  modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
+
+  btnNo.addEventListener('click', () => {
+    btnYes.style.display = 'none';
+    btnNo.style.display = 'none';
+    sorryEl.style.display = 'block';
+    setTimeout(closeModal, 2200);
+  });
+
+  btnYes.addEventListener('click', async () => {
+    btnYes.disabled = true;
+    btnYes.textContent = 'Confirmando…';
+    try {
+      await registrarAsistencia(GUEST || 'Invitado');
+    } catch(e) {
+      console.warn('No se pudo registrar en Airtable:', e);
+      // Aunque falle el guardado, dejamos continuar a WhatsApp
+    }
+    closeModal();
+    btnYes.disabled = false;
+    btnYes.textContent = 'Sí, confirmo';
+    // Continuar al envío de WhatsApp
+    const numero = window._rsvpNumeros[pendingNovio];
+    const encoded = encodeURIComponent(window._rsvpMsg || '');
+    window.open(`https://wa.me/${numero}?text=${encoded}`, '_blank');
+  });
+}
+
+async function registrarAsistencia(nombre) {
+  const cfg = C.airtableRsvp;
+  if(!cfg || !cfg.apiKey || cfg.apiKey === 'TU_API_KEY_AQUI') return;
+  const { apiKey, baseId, tableId } = cfg;
+  const headers = { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' };
+
+  // 1. Validar si ya existe ese nombre, para no duplicar
+  const checkUrl = `https://api.airtable.com/v0/${baseId}/${tableId}?filterByFormula=${encodeURIComponent(`{Nombre}='${nombre.replace(/'/g, "\\'")}'`)}&maxRecords=1`;
+  const checkRes = await fetch(checkUrl, { headers });
+  if(checkRes.ok) {
+    const data = await checkRes.json();
+    if(data.records && data.records.length > 0) {
+      // Ya estaba confirmado — no se duplica
+      return;
+    }
+  }
+
+  // 2. Crear el registro nuevo
+  const createRes = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      fields: {
+        Nombre: nombre,
+        Fecha: new Date().toISOString()
+      }
+    })
+  });
+  if(!createRes.ok) {
+    const errText = await createRes.text();
+    throw new Error('Airtable RSVP error: ' + errText);
+  }
 }
 
 // ── Instrucciones con Pinterest y Regalo ──────────────
@@ -842,6 +1003,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initBook();
   initVestModal();
   initAutoNudge();
+  initRsvpConfirm();
+  initCalendarButton();
 });
 
 
