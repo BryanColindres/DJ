@@ -16,27 +16,33 @@ const ModalStack = (() => {
   let stack = [];      // ids de modales abiertos, en orden
   let savedScrollY = 0;
 
+  // IMPORTANTE: NO usamos document.body.style.position='fixed' para
+  // bloquear el scroll. Eso convierte al <body> en un nuevo contenedor
+  // de posicionamiento, y entonces TODOS los hijos con position:fixed
+  // (los modales, el lightbox, etc.) dejan de anclarse a la ventana
+  // real y pasan a anclarse al body desplazado — apareciendo arriba,
+  // abajo o totalmente fuera de la pantalla visible. Por eso usamos
+  // solo overflow:hidden (que sí bloquea el scroll, incluido el
+  // táctil en navegadores modernos) y compensamos el ancho del
+  // scrollbar para que el contenido no "salte" al bloquear.
   function lockScroll() {
     if(stack.length === 1) {
-      // Solo bloqueamos al abrir el PRIMER modal de la pila
       savedScrollY = window.scrollY || window.pageYOffset;
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.documentElement.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = (-savedScrollY) + 'px';
-      document.body.style.left = '0';
-      document.body.style.right = '0';
-      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+      if(scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + 'px';
     }
   }
   function unlockScroll() {
     if(stack.length === 0) {
       document.documentElement.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.width = '';
-      window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.body.style.paddingRight = '';
+      // No hace falta scrollTo: como nunca movimos el body, la
+      // posición de scroll de la página nunca cambió.
     }
   }
 
