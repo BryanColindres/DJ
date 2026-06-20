@@ -47,6 +47,18 @@ function applyConfig() {
   if(C.historiaSubtitulo) set('historiaSubtituloEl', C.historiaSubtitulo);
   ['story1','story2','story3'].forEach((id,i) => set(id, C.historiaTextos[i]||''));
 
+  // Historia — fotos desde config (evita hardcode en HTML)
+  const h1img = document.querySelector('#storyPhoto1 img');
+  const h2img = document.querySelector('#storyPhoto2 img');
+  const h3img = document.querySelector('#storyPhoto3 img');
+  if(h1img && C.fotos.historia1) h1img.src = C.fotos.historia1;
+  if(h2img && C.fotos.historia2) h2img.src = C.fotos.historia2;
+  if(h3img && C.fotos.historia3) h3img.src = C.fotos.historia3;
+
+  // RSVP — foto desde config
+  const rsvpImg = document.querySelector('#rsvpPhoto img');
+  if(rsvpImg && C.fotos.rsvp) rsvpImg.src = C.fotos.rsvp;
+
   // Libro de firmas — etiquetas desde config
   if(C.libroFirmas.titulo)       set('bookTituloEl',    C.libroFirmas.titulo);
   if(C.libroFirmas.subtitulo)    set('bookSubtituloEl', C.libroFirmas.subtitulo);
