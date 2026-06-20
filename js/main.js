@@ -46,11 +46,37 @@ const ModalStack = (() => {
     }
   }
 
+  // Fuerza el modal a ocupar EXACTAMENTE el viewport visible real,
+  // calculado en JS en el momento de abrir. Esto es un respaldo a
+  // prueba de balas por si position:fixed + dvh no se comporta bien
+  // en algún navegador/Android específico: en vez de confiar en que
+  // el CSS calcule bien el tamaño de pantalla, lo fijamos a mano.
+  function pinToViewport(el) {
+    const vv = window.visualViewport;
+    const top    = vv ? vv.offsetTop  : 0;
+    const left   = vv ? vv.offsetLeft : 0;
+    const height = vv ? vv.height     : window.innerHeight;
+    const width  = vv ? vv.width      : window.innerWidth;
+    el.style.position = 'fixed';
+    el.style.top    = top + 'px';
+    el.style.left   = left + 'px';
+    el.style.width  = width + 'px';
+    el.style.height = height + 'px';
+  }
+
   // Abre un modal: agrega su id a la pila, bloquea scroll si es el primero,
   // y mete un estado en el historial para que "atrás" lo cierre.
-  function open(id, closeFn) {
-    stack.push({ id, closeFn });
+  function open(id, closeFn, el) {
+    stack.push({ id, closeFn, el });
     lockScroll();
+    if(el) {
+      pinToViewport(el);
+      // Recalcular si el teclado/barra de direcciones cambia mientras está abierto
+      const reposition = () => pinToViewport(el);
+      el._reposition = reposition;
+      if(window.visualViewport) window.visualViewport.addEventListener('resize', reposition);
+      window.addEventListener('resize', reposition);
+    }
     history.pushState({ modalStack: stack.length }, '');
   }
 
@@ -63,6 +89,20 @@ const ModalStack = (() => {
     history.back();
   }
 
+  function unpinFromViewport(el) {
+    if(!el) return;
+    el.style.position = '';
+    el.style.top = '';
+    el.style.left = '';
+    el.style.width = '';
+    el.style.height = '';
+    if(el._reposition) {
+      if(window.visualViewport) window.visualViewport.removeEventListener('resize', el._reposition);
+      window.removeEventListener('resize', el._reposition);
+      delete el._reposition;
+    }
+  }
+
   // Maneja el botón "atrás" del navegador: cierra SOLO el modal
   // que está en la cima de la pila, nunca sale de la invitación
   // mientras queden modales abiertos.
@@ -70,6 +110,7 @@ const ModalStack = (() => {
     if(stack.length === 0) return;
     const top = stack.pop();
     top.closeFn();
+    if(top.el) unpinFromViewport(top.el);
     unlockScroll();
   });
 
@@ -268,7 +309,7 @@ function initCalendarButton() {
 
   btn.addEventListener('click', () => {
     modal.classList.add('open');
-    ModalStack.open('calendarModal', _closeVisual);
+    ModalStack.open('calendarModal', _closeVisual, modal);
   });
   modal.addEventListener('click', e => { if(e.target === modal) close(); });
   // Cerrar el menú al elegir una opción (se abre en pestaña nueva)
@@ -310,7 +351,7 @@ function initRsvpConfirm() {
   async function openModal(novio) {
     pendingNovio = novio;
     modal.classList.add('open');
-    ModalStack.open('rsvpConfirmModal', _closeModalVisual);
+    ModalStack.open('rsvpConfirmModal', _closeModalVisual, modal);
     showState('checking');
     const yaConfirmo = await yaConfirmoAsistencia(GUEST || 'Invitado');
     showState(yaConfirmo ? 'already' : 'ask');
@@ -663,7 +704,7 @@ function openLightbox(srcs, idx) {
   lbImgs = srcs; lbIdx = idx;
   img.src = lbImgs[lbIdx];
   lb.classList.add('open');
-  ModalStack.open('lightbox', _closeLightboxVisual);
+  ModalStack.open('lightbox', _closeLightboxVisual, lb);
 }
 
 function initLightbox() {
@@ -1150,7 +1191,7 @@ window.openVestModal = function() {
   if(!m) return;
   m.scrollTop = 0;
   m.classList.add('open');
-  ModalStack.open('vestModal', () => m.classList.remove('open'));
+  ModalStack.open('vestModal', () => m.classList.remove('open'), m);
 };
 
 window.closeVestModal = function() {
