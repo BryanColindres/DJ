@@ -399,6 +399,9 @@ function closeLightbox() {
   if(!lb || !lb.classList.contains('open')) return;
   lb.classList.remove('open');
   document.body.style.overflow='';
+  // Si el estado actual del historial es el que pusimos al abrir,
+  // lo quitamos para no dejar entradas "fantasma" en el historial.
+  if(history.state && history.state.lightboxOpen) history.back();
 }
 
 function openLightbox(srcs, idx) {
@@ -408,6 +411,9 @@ function openLightbox(srcs, idx) {
   img.src = lbImgs[lbIdx];
   lb.classList.add('open');
   document.body.style.overflow='hidden';
+  // Empujar un estado al historial: así el botón "atrás" del
+  // navegador cierra la foto en vez de salir de la invitación.
+  history.pushState({ lightboxOpen: true }, '');
 }
 
 function initLightbox() {
@@ -423,6 +429,16 @@ function initLightbox() {
     if(e.key==='Escape') closeLightbox();
     if(e.key==='ArrowLeft') { lbIdx=(lbIdx-1+lbImgs.length)%lbImgs.length; img.src=lbImgs[lbIdx]; }
     if(e.key==='ArrowRight'){ lbIdx=(lbIdx+1)%lbImgs.length; img.src=lbImgs[lbIdx]; }
+  });
+
+  // Botón "atrás" del navegador: si la foto está abierta, solo la
+  // cerramos (sin volver a empujar history.back, ya estamos en el
+  // popstate que el navegador disparó solo).
+  window.addEventListener('popstate', () => {
+    if(lb.classList.contains('open')) {
+      lb.classList.remove('open');
+      document.body.style.overflow = '';
+    }
   });
 
   // Galería principal
