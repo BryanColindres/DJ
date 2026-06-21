@@ -4,78 +4,6 @@
 const C = window.BODA_CONFIG;
 const $  = id => document.getElementById(id);
 
-// ══════════════════════════════════════════════════════
-//  MODAL STACK — sistema central para cualquier modal
-//  (lightbox, vestimenta, confirmación, etc.)
-//  Garantiza: scroll bloqueado de forma robusta en móvil +
-//  el botón "atrás" del navegador cierra el modal en vez de
-//  salir de la invitación, sin importar cuántos modales se
-//  hayan abierto en cadena (pila real, no solo un flag).
-// ══════════════════════════════════════════════════════
-const ModalStack = (() => {
-  let stack = [];      // ids de modales abiertos, en orden
-  let savedScrollY = 0;
-
-  // IMPORTANTE: NO usamos document.body.style.position='fixed' para
-  // bloquear el scroll. Eso convierte al <body> en un nuevo contenedor
-  // de posicionamiento, y entonces TODOS los hijos con position:fixed
-  // (los modales, el lightbox, etc.) dejan de anclarse a la ventana
-  // real y pasan a anclarse al body desplazado — apareciendo arriba,
-  // abajo o totalmente fuera de la pantalla visible. Por eso usamos
-  // solo overflow:hidden (que sí bloquea el scroll, incluido el
-  // táctil en navegadores modernos) y compensamos el ancho del
-  // scrollbar para que el contenido no "salte" al bloquear.
-  function lockScroll() {
-    if(stack.length === 1) {
-      savedScrollY = window.scrollY || window.pageYOffset;
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-      if(scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + 'px';
-    }
-  }
-  function unlockScroll() {
-    if(stack.length === 0) {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-      document.body.style.paddingRight = '';
-      // No hace falta scrollTo: como nunca movimos el body, la
-      // posición de scroll de la página nunca cambió.
-    }
-  }
-
-  // Abre un modal: agrega su id a la pila, bloquea scroll si es el primero,
-  // y mete un estado en el historial para que "atrás" lo cierre.
-  function open(id, closeFn) {
-    stack.push({ id, closeFn });
-    lockScroll();
-    history.pushState({ modalStack: stack.length }, '');
-  }
-
-  // Cierra el modal indicado (lo normal: llamado por la X o el fondo).
-  // Dispara history.back() para mantener el historial sincronizado;
-  // el cierre visual real ocurre en el handler de popstate.
-  function close(id) {
-    const idx = stack.findIndex(m => m.id === id);
-    if(idx === -1) return;
-    history.back();
-  }
-
-  // Maneja el botón "atrás" del navegador: cierra SOLO el modal
-  // que está en la cima de la pila, nunca sale de la invitación
-  // mientras queden modales abiertos.
-  window.addEventListener('popstate', () => {
-    if(stack.length === 0) return;
-    const top = stack.pop();
-    top.closeFn();
-    unlockScroll();
-  });
-
-  return { open, close };
-})();
-
 
 // ── Nombre del invitado desde URL ──────────────────────
 function getGuest() {
@@ -201,10 +129,11 @@ function applyConfig() {
 }
 
 function setWAButtons(msg) {
-  // Guardamos el mensaje y los números — el envío real ahora pasa
-  // primero por el modal de confirmación (rsvpConfirmModal)
-  window._rsvpMsg = msg;
-  window._rsvpNumeros = { Bryan: '50431626792', Stefany: '50499223790' };
+  const encoded = encodeURIComponent(msg);
+  const btnNovio = document.getElementById('whatsappBtnNovio');
+  const btnNovia = document.getElementById('whatsappBtnNovia');
+  if(btnNovio) btnNovio.href = `https://wa.me/50431626792?text=${encoded}`;
+  if(btnNovia) btnNovia.href = `https://wa.me/50499223790?text=${encoded}`;
 
   // Colores
   const r = document.documentElement.style;
@@ -216,187 +145,6 @@ function setWAButtons(msg) {
   r.setProperty('--gold',      C.colores.dorado);
 }
 
-// ══════════════════════════════════════════════════════
-//  CALENDARIO — Menú con links directos (sin descarga)
-//  Nota: ningún link directo soporta recordatorios
-//  personalizados vía URL — eso solo lo permite un archivo
-//  .ics descargado. El usuario eligió evitar la descarga,
-//  así que cada app mostrará sus recordatorios por defecto.
-// ══════════════════════════════════════════════════════
-function getEventTimes() {
-  // Honduras está en UTC-6 todo el año (sin horario de verano).
-  const [datePart, timePart] = C.evento.fecha.split('T');
-  const [y, mo, d] = datePart.split('-').map(Number);
-  const [h, mi, s] = (timePart || '00:00:00').split(':').map(Number);
-  const HONDURAS_OFFSET_MIN = 6 * 60;
-  const start = new Date(Date.UTC(y, mo - 1, d, h, mi, s || 0) + HONDURAS_OFFSET_MIN * 60000);
-  const end   = new Date(start.getTime() + 4 * 60 * 60 * 1000);
-  return { start, end };
-}
-
-function initCalendarButton() {
-  const btn = $('addToCalendarBtn');
-  const modal = $('calendarModal');
-  if(!btn || !modal) return;
-
-  const { start, end } = getEventTimes();
-  const fmtUTC = dt => dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const titulo = 'Boda de Bryan y Stefany';
-  const lugar  = `Valletal Eventos, ${C.evento.lugar}`;
-  const desc   = `¡Acompáñanos a celebrar la boda de Bryan y Stefany! ${C.evento.fechaTexto} a las ${C.evento.hora}.`;
-
-  // Google Calendar
-  const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titulo)}&dates=${fmtUTC(start)}/${fmtUTC(end)}&details=${encodeURIComponent(desc)}&location=${encodeURIComponent(lugar)}`;
-  // Outlook (web)
-  const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(titulo)}&startdt=${start.toISOString()}&enddt=${end.toISOString()}&body=${encodeURIComponent(desc)}&location=${encodeURIComponent(lugar)}&path=/calendar/action/compose&rru=addevent`;
-  // Yahoo Calendar
-  const yahooFmt = dt => dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const durationMin = Math.round((end - start) / 60000);
-  const dh = String(Math.floor(durationMin/60)).padStart(2,'0');
-  const dm = String(durationMin%60).padStart(2,'0');
-  const yahooUrl = `https://calendar.yahoo.com/?v=60&view=d&type=20&title=${encodeURIComponent(titulo)}&st=${yahooFmt(start)}&dur=${dh}${dm}&desc=${encodeURIComponent(desc)}&in_loc=${encodeURIComponent(lugar)}`;
-
-  $('calGoogle').href  = googleUrl;
-  $('calOutlook').href = outlookUrl;
-  $('calYahoo').href   = yahooUrl;
-
-  function _closeVisual() { modal.classList.remove('open'); }
-  function close() {
-    if(!modal.classList.contains('open')) return;
-    ModalStack.close('calendarModal');
-  }
-
-  btn.addEventListener('click', () => {
-    modal.classList.add('open');
-    ModalStack.open('calendarModal', _closeVisual);
-  });
-  modal.addEventListener('click', e => { if(e.target === modal) close(); });
-  // Cerrar el menú al elegir una opción (se abre en pestaña nueva)
-  modal.querySelectorAll('a').forEach(a => a.addEventListener('click', () => close()));
-}
-
-// ══════════════════════════════════════════════════════
-//  RSVP — Confirmación de asistencia con Airtable
-// ══════════════════════════════════════════════════════
-function initRsvpConfirm() {
-  const modal     = $('rsvpConfirmModal');
-  const btnYes    = $('rsvpConfirmYes');
-  const btnNo     = $('rsvpConfirmNo');
-  const sorryEl   = $('rsvpConfirmSorry');
-  const alreadyEl = $('rsvpConfirmAlready');
-  const checkingEl= $('rsvpConfirmChecking');
-  const btnNovio  = $('whatsappBtnNovio');
-  const btnNovia  = $('whatsappBtnNovia');
-  if(!modal) return;
-
-  let pendingNovio = null; // 'Bryan' o 'Stefany' — a quién se confirmará
-
-  function showState(state) {
-    // state: 'checking' | 'ask' | 'sorry' | 'already'
-    checkingEl.style.display = state === 'checking' ? 'block' : 'none';
-    btnYes.style.display     = state === 'ask'       ? 'inline-flex' : 'none';
-    btnNo.style.display      = state === 'ask'       ? 'inline-flex' : 'none';
-    sorryEl.style.display    = state === 'sorry'     ? 'block' : 'none';
-    alreadyEl.style.display  = state === 'already'   ? 'block' : 'none';
-  }
-
-  function _closeModalVisual() { modal.classList.remove('open'); }
-
-  function closeModal() {
-    if(!modal.classList.contains('open')) return;
-    ModalStack.close('rsvpConfirmModal');
-  }
-
-  async function openModal(novio) {
-    pendingNovio = novio;
-    modal.classList.add('open');
-    ModalStack.open('rsvpConfirmModal', _closeModalVisual);
-    showState('checking');
-    const yaConfirmo = await yaConfirmoAsistencia(GUEST || 'Invitado');
-    showState(yaConfirmo ? 'already' : 'ask');
-  }
-
-  if(btnNovio) btnNovio.addEventListener('click', () => openModal('Bryan'));
-  if(btnNovia) btnNovia.addEventListener('click', () => openModal('Stefany'));
-
-  // Cerrar tocando el fondo oscuro
-  modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
-
-  btnNo.addEventListener('click', () => {
-    showState('sorry');
-    setTimeout(closeModal, 2200);
-  });
-
-  btnYes.addEventListener('click', async () => {
-    btnYes.disabled = true;
-    btnYes.textContent = 'Confirmando…';
-    try {
-      await registrarAsistencia(GUEST || 'Invitado');
-    } catch(e) {
-      console.warn('No se pudo registrar en Airtable:', e);
-      // Aunque falle el guardado, dejamos continuar a WhatsApp
-    }
-    btnYes.disabled = false;
-    btnYes.textContent = 'Sí, confirmo';
-    closeModal();
-    // Continuar al envío de WhatsApp
-    const numero = window._rsvpNumeros[pendingNovio];
-    const encoded = encodeURIComponent(window._rsvpMsg || '');
-    window.open(`https://wa.me/${numero}?text=${encoded}`, '_blank');
-  });
-}
-
-// Verifica en Airtable si este nombre ya confirmó antes
-async function yaConfirmoAsistencia(nombre) {
-  const cfg = C.airtableRsvp;
-  if(!cfg || !cfg.apiKey || cfg.apiKey === 'TU_API_KEY_AQUI') return false;
-  const { apiKey, baseId, tableId } = cfg;
-  const headers = { 'Authorization': `Bearer ${apiKey}` };
-  try {
-    const checkUrl = `https://api.airtable.com/v0/${baseId}/${tableId}?filterByFormula=${encodeURIComponent(`{Nombre}='${nombre.replace(/'/g, "\\'")}'`)}&maxRecords=1`;
-    const res = await fetch(checkUrl, { headers });
-    if(!res.ok) return false;
-    const data = await res.json();
-    return !!(data.records && data.records.length > 0);
-  } catch(e) {
-    console.warn('No se pudo verificar Airtable:', e);
-    return false;
-  }
-}
-
-async function registrarAsistencia(nombre) {
-  const cfg = C.airtableRsvp;
-  if(!cfg || !cfg.apiKey || cfg.apiKey === 'TU_API_KEY_AQUI') return;
-  const { apiKey, baseId, tableId } = cfg;
-  const headers = { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' };
-
-  // 1. Validar si ya existe ese nombre, para no duplicar
-  const checkUrl = `https://api.airtable.com/v0/${baseId}/${tableId}?filterByFormula=${encodeURIComponent(`{Nombre}='${nombre.replace(/'/g, "\\'")}'`)}&maxRecords=1`;
-  const checkRes = await fetch(checkUrl, { headers });
-  if(checkRes.ok) {
-    const data = await checkRes.json();
-    if(data.records && data.records.length > 0) {
-      // Ya estaba confirmado — no se duplica
-      return;
-    }
-  }
-
-  // 2. Crear el registro nuevo
-  const createRes = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      fields: {
-        Nombre: nombre,
-        Fecha: new Date().toISOString()
-      }
-    })
-  });
-  if(!createRes.ok) {
-    const errText = await createRes.text();
-    throw new Error('Airtable RSVP error: ' + errText);
-  }
-}
 
 // ── Instrucciones con Pinterest y Regalo ──────────────
 function buildInstrucciones() {
@@ -650,11 +398,7 @@ function closeLightbox() {
   const lb=$('lightbox');
   if(!lb || !lb.classList.contains('open')) return;
   lb.classList.remove('open');
-  ModalStack.close('lightbox');
-}
-function _closeLightboxVisual() {
-  const lb=$('lightbox');
-  if(lb) lb.classList.remove('open');
+  document.body.style.overflow='';
 }
 
 function openLightbox(srcs, idx) {
@@ -663,7 +407,7 @@ function openLightbox(srcs, idx) {
   lbImgs = srcs; lbIdx = idx;
   img.src = lbImgs[lbIdx];
   lb.classList.add('open');
-  ModalStack.open('lightbox', _closeLightboxVisual);
+  document.body.style.overflow='hidden';
 }
 
 function initLightbox() {
@@ -1066,8 +810,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initBook();
   initVestModal();
   initAutoNudge();
-  initRsvpConfirm();
-  initCalendarButton();
 });
 
 
@@ -1145,18 +887,24 @@ function initVestModal() {
   });
 }
 
+let _vestScrollY = 0;
+
 window.openVestModal = function() {
   const m = document.getElementById('vestModal');
   if(!m) return;
+  _vestScrollY = window.scrollY || window.pageYOffset;
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
   m.scrollTop = 0;
   m.classList.add('open');
-  ModalStack.open('vestModal', () => m.classList.remove('open'));
 };
 
 window.closeVestModal = function() {
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
   const m = document.getElementById('vestModal');
-  if(!m || !m.classList.contains('open')) return;
-  ModalStack.close('vestModal');
+  if(m) m.classList.remove('open');
+  window.scrollTo({ top: _vestScrollY, behavior: 'instant' });
 };
 
 // Lightbox de fotos del libro de firmas — reutiliza el lightbox principal
