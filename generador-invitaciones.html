@@ -180,7 +180,7 @@
   <!-- Resultados -->
   <div class="card">
     <h2>Enlaces generados</h2>
-    <p class="hint">El enlace se acorta automáticamente. Toca el ícono de copiar para llevar el mensaje completo al portapapeles, o el de WhatsApp para enviarlo directo.</p>
+    <p class="hint">Toca el ícono de copiar para llevar el mensaje completo al portapapeles, o el de WhatsApp para enviarlo directo.</p>
     <div class="results" id="results">
       <p class="empty" id="emptyMsg">Todavía no has generado ningún enlace.</p>
     </div>
@@ -238,23 +238,11 @@ function addBulk() {
   ta.value = '';
 }
 
-async function shortenUrl(longUrl) {
-  try {
-    const res = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longUrl));
-    if (!res.ok) throw new Error('fail');
-    const short = await res.text();
-    if (short.startsWith('http')) return short.trim();
-    return longUrl;
-  } catch (e) {
-    return longUrl; // si falla el acortador, usamos el link normal
-  }
-}
-
 function shareMessage(name, link) {
   return `💍 ¡Hola ${name}!\n\nCon mucha alegría te invitamos a nuestra boda.\nBryan & Stefany — 03 de octubre, 2026\n\nAquí está tu invitación:\n${link}`;
 }
 
-async function addResult(name, longLink) {
+function addResult(name, link) {
   emptyMsg.style.display = 'none';
   const item = document.createElement('div');
   item.className = 'result-item';
@@ -268,20 +256,15 @@ async function addResult(name, longLink) {
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.32A8.86 8.86 0 0012.05 4 8.94 8.94 0 003.5 17.41L2 22l4.7-1.46a8.93 8.93 0 004.32 1.1h0a8.94 8.94 0 008.94-8.92 8.86 8.86 0 00-2.36-6.4zM12.05 20a7.4 7.4 0 01-3.78-1.04l-.27-.16-2.8.87.87-2.73-.18-.28A7.43 7.43 0 1119.5 11.13 7.46 7.46 0 0112.05 20zm4.08-5.56c-.22-.11-1.32-.65-1.53-.73s-.35-.11-.5.11-.58.73-.71.88-.26.16-.48.05a6.1 6.1 0 01-1.79-1.1 6.7 6.7 0 01-1.24-1.54c-.13-.22 0-.34.1-.46s.22-.26.33-.38a1.5 1.5 0 00.22-.37.4.4 0 000-.39c-.05-.11-.5-1.2-.68-1.65s-.36-.37-.5-.38h-.43a.83.83 0 00-.6.28 2.5 2.5 0 00-.78 1.87 4.4 4.4 0 00.91 2.3 10 10 0 003.84 3.39c.54.23.96.37 1.29.47a3.1 3.1 0 001.42.09 2.33 2.33 0 001.53-1.08 1.9 1.9 0 00.13-1.08c-.06-.1-.2-.16-.42-.27z"/></svg>
       </button>
     </div>
-    <span class="link">Acortando enlace…</span>
+    <span class="link">${escapeHtml(link)}</span>
   `;
-  resultsEl.appendChild(item);
-
-  const shortLink = await shortenUrl(longLink);
-  const linkEl = item.querySelector('.link');
-  linkEl.textContent = shortLink;
-
   item.querySelector('.copy-btn').addEventListener('click', (e) => {
-    copyText(shareMessage(name, shortLink), e.currentTarget);
+    copyText(shareMessage(name, link), e.currentTarget);
   });
   item.querySelector('.wa-btn').addEventListener('click', () => {
-    window.open('https://wa.me/?text=' + encodeURIComponent(shareMessage(name, shortLink)), '_blank');
+    window.open('https://wa.me/?text=' + encodeURIComponent(shareMessage(name, link)), '_blank');
   });
+  resultsEl.appendChild(item);
 }
 
 function copyText(text, btn) {
