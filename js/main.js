@@ -371,15 +371,39 @@ function initVoice() {
         lbl=  $('voiceLabel'), ico=$('voiceIcon');
   if(!btn||!aud) return;
   let playing=false;
+
+  function startPlay() {
+    // Forzar carga en iOS (que ignora preload="auto")
+    if(aud.readyState < 2) {
+      lbl.textContent = 'Cargando…';
+      aud.load();
+    }
+    const bg=$('bgMusic');
+    aud.play().then(()=>{
+      // Solo actualizamos UI si la reproducción realmente comenzó
+      playing=true;
+      ico.textContent='⏸';
+      lbl.textContent='Pausar';
+      prog.classList.add('active');
+      if(bg&&musicOn) fadeVol(bg,bg.volume,.07,1500);
+    }).catch(()=>{
+      // Falló (iOS no tiene el audio listo aún) — resetear estado
+      playing=false;
+      ico.textContent='▶';
+      lbl.textContent='Toca de nuevo para escuchar';
+      // Reintentar carga para que el próximo toque funcione
+      aud.load();
+    });
+  }
+
   btn.addEventListener('click',()=>{
     if(!playing){
-      aud.play().catch(()=>{ lbl.textContent='Audio no disponible aún'; return; });
-      playing=true; ico.textContent='⏸'; lbl.textContent='Pausar';
-      prog.classList.add('active');
-      const bg=$('bgMusic');
-      if(bg&&musicOn) fadeVol(bg,bg.volume,.07,1500);
+      startPlay();
     } else {
-      aud.pause(); playing=false; ico.textContent='▶'; lbl.textContent='Escuchar mensaje';
+      aud.pause();
+      playing=false;
+      ico.textContent='▶';
+      lbl.textContent='Escuchar mensaje';
       const bg=$('bgMusic');
       if(bg&&musicOn) fadeVol(bg,bg.volume,.28,1500);
     }
