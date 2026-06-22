@@ -373,26 +373,33 @@ function initVoice() {
   let playing=false;
 
   function startPlay() {
-    // Forzar carga en iOS (que ignora preload="auto")
-    if(aud.readyState < 2) {
+    const bg=$('bgMusic');
+    // readyState 0=no data, 1=metadata, 2=current data, 3=future data, 4=enough data
+    if(aud.readyState >= 2) {
+      // Audio ya tiene datos suficientes — reproducir directo
+      doPlay(bg);
+    } else {
+      // iOS aún no tiene el audio — mostrar cargando y esperar
       lbl.textContent = 'Cargando…';
       aud.load();
+      aud.addEventListener('canplay', function onCanPlay() {
+        aud.removeEventListener('canplay', onCanPlay);
+        doPlay(bg);
+      }, { once: true });
     }
-    const bg=$('bgMusic');
+  }
+
+  function doPlay(bg) {
     aud.play().then(()=>{
-      // Solo actualizamos UI si la reproducción realmente comenzó
       playing=true;
       ico.textContent='⏸';
       lbl.textContent='Pausar';
       prog.classList.add('active');
       if(bg&&musicOn) fadeVol(bg,bg.volume,.07,1500);
     }).catch(()=>{
-      // Falló (iOS no tiene el audio listo aún) — resetear estado
       playing=false;
       ico.textContent='▶';
       lbl.textContent='Toca de nuevo para escuchar';
-      // Reintentar carga para que el próximo toque funcione
-      aud.load();
     });
   }
 
