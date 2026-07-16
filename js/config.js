@@ -119,7 +119,7 @@ window.BODA_CONFIG = {
       "vetty-martinez":"ver", "veronica-urbina":"ver", "darcy-amaya":"ver",
       "cristian-umanzor":"ver", "andrea-yanes":"ver", "evelyn-reyes":"ver",
       "carlos-lainez":"ver", "carlos-carias":"ver", "carlos-cabrera":"ver",
-      "allison-mendoza":"ver", "pastora-leyla-zuniga":"ver"
+      "allison-mendoza":"ver", "pastora-leyla-zuniga":"ver", "danny-guerrero":"bloqueado"
     },
 
     textos: {
