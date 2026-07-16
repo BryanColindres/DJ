@@ -129,7 +129,7 @@ window.BODA_CONFIG = {
       },
       bloqueado: {
         titulo: "Esta invitación ya no está disponible",
-        texto:  "Este enlace fue deshabilitado. Si tienes alguna duda, escríbenos directamente."
+        texto:  "Al no recibir tu confirmación antes de la fecha límite, asumimos que no podrás acompañarnos en esta ocasión. ¡Esperamos verte y compartir contigo en una próxima oportunidad!"
       }
     }
   },
