@@ -18,6 +18,9 @@
   <meta name="apple-mobile-web-app-title" content="B &amp; S 2026"/>
   <meta name="theme-color" content="#9B6B6B"/>
 
+  <!-- Config se carga en el head para poder validar el acceso ANTES de pintar la invitación -->
+  <script src="js/config.js"></script>
+
   <!-- ── Vista previa al compartir (WhatsApp, Facebook, etc.) ── -->
   <meta property="og:type" content="website"/>
   <meta property="og:title" content="Bryan & Stefany · Nos casamos 💍"/>
@@ -30,6 +33,80 @@
   <meta name="twitter:image" content="https://bryancolindres.github.io/DJ/img/hero.jpg"/>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════════
+     CONTROL DE ACCESO — se ejecuta ANTES de pintar nada
+     Bloquea el resto de la página con una clase en el body
+     si el slug no está permitido o si ya expiró.
+══════════════════════════════════════════════════ -->
+<script>
+(function(){
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var raw = (params.get('i') || params.get('inv') || '').trim().toLowerCase();
+    var cfg = (window.BODA_CONFIG && window.BODA_CONFIG.invitados) || null;
+    var state = 'ok';
+
+    if (cfg) {
+      var estado = raw ? cfg.estado[raw] : undefined;
+      if (!estado) {
+        state = 'denied';
+      } else if (estado === 'bloqueado') {
+        state = 'blocked';
+      }
+    }
+
+    document.body.className += ' gate-' + state;
+    window.__GATE_STATE__ = state;
+  } catch(e) {
+    // Ante cualquier error, no bloqueamos la invitación
+    document.body.className += ' gate-ok';
+    window.__GATE_STATE__ = 'ok';
+  }
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA — ENLACE NO HABILITADO
+══════════════════════════════════════════════════ -->
+<div class="access-gate access-gate--denied" id="gateDenied">
+  <div class="access-gate__bg">
+    <img src="img/preboda9.jpg" onerror="this.style.display='none'"/>
+    <div class="access-gate__overlay"></div>
+  </div>
+  <div class="access-gate__content">
+    <div class="access-gate__monogram">B <span>&amp;</span> S</div>
+    <div class="access-gate__deco">
+      <span></span>
+      <svg viewBox="0 0 40 20"><path d="M20 2C14 10 8 10 8 10C14 10 20 18 20 18C20 18 26 10 32 10C26 10 20 2 20 2Z" fill="currentColor"/></svg>
+      <span></span>
+    </div>
+    <h1 id="gateDeniedTitulo">Este enlace no está habilitado</h1>
+    <p id="gateDeniedTexto">Este enlace no corresponde a ninguna invitación de nuestra boda.</p>
+    <a class="access-gate__btn" id="gateDeniedWA" href="#" target="_blank">Escribirnos por WhatsApp</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA — INVITACIÓN BLOQUEADA
+══════════════════════════════════════════════════ -->
+<div class="access-gate access-gate--blocked" id="gateBlocked">
+  <div class="access-gate__bg">
+    <img src="img/preboda13.jpg" onerror="this.style.display='none'"/>
+    <div class="access-gate__overlay"></div>
+  </div>
+  <div class="access-gate__content">
+    <div class="access-gate__monogram">B <span>&amp;</span> S</div>
+    <div class="access-gate__deco">
+      <span></span>
+      <svg viewBox="0 0 40 20"><path d="M20 2C14 10 8 10 8 10C14 10 20 18 20 18C20 18 26 10 32 10C26 10 20 2 20 2Z" fill="currentColor"/></svg>
+      <span></span>
+    </div>
+    <h1 id="gateBlockedTitulo">Esta invitación ya no está disponible</h1>
+    <p id="gateBlockedTexto">Este enlace fue deshabilitado.</p>
+    <a class="access-gate__btn" id="gateBlockedWA" href="#" target="_blank">Escribirnos por WhatsApp</a>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════
      PANTALLA DE VIDEO INTRO
@@ -454,7 +531,6 @@
   </div>
 </div>
 
-<script src="js/config.js"></script>
 <script src="js/main.js"></script>
 <!-- Botón música FUERA de .invitation para que position:fixed funcione -->
 <button class="music-btn" id="musicBtn" title="Música">
