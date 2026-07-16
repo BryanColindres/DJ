@@ -845,8 +845,41 @@ window.chkP=function(){ if($('ap').value==='bodadanieljissel'){ closeOv(); toast
 function mkOv(){ window.closeOv(); const o=document.createElement('div'); o.id='adm-o'; o.style.cssText='position:fixed;inset:0;background:rgba(20,10,10,.6);backdrop-filter:blur(6px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;transition:opacity .3s'; return o; }
 window.closeOv=function(){ const e=$('adm-o'); if(e){e.style.opacity='0';setTimeout(()=>e.remove(),300);} };
 
+// ── Control de acceso — pantallas de bloqueo ───────────
+function applyGateTexts() {
+  const textos = C.invitados && C.invitados.textos;
+  if (!textos) return;
+  const numero = (C.whatsapp && C.whatsapp.numero) || '';
+  const waMsg = encodeURIComponent('Hola, tengo un problema con el link de mi invitación a la boda de Bryan y Stefany.');
+
+  if (textos.noHabilitado) {
+    set('gateDeniedTitulo', textos.noHabilitado.titulo);
+    set('gateDeniedTexto',  textos.noHabilitado.texto);
+  }
+  if (textos.bloqueado) {
+    set('gateBlockedTitulo', textos.bloqueado.titulo);
+    set('gateBlockedTexto',  textos.bloqueado.texto);
+  }
+  if (numero) {
+    const wa = 'https://wa.me/' + numero + '?text=' + waMsg;
+    href('gateDeniedWA', wa);
+    href('gateBlockedWA', wa);
+  }
+}
+function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function href(id, u) { const el = document.getElementById(id); if (el) el.href = u; }
+
 // ── INIT ──────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  applyGateTexts();
+
+  // Si el acceso fue bloqueado por el script de verificación
+  // (en el <head>/inicio del <body>), no inicializamos el resto
+  // de la invitación.
+  if (window.__GATE_STATE__ && window.__GATE_STATE__ !== 'ok') {
+    return;
+  }
+
   applyConfig();
   startCountdown();
   spawnPetals('videoPetals', 12);

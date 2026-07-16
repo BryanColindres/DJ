@@ -86,6 +86,54 @@ window.BODA_CONFIG = {
   rsvp: { descripcion: "Nos encantaría contar con tu presencia. Por favor confírmanos antes del 01 de agosto de 2026." },
   footer: { frase: "Con amor, los esperamos." },
 
+  // ── CONTROL DE ACCESO — Invitados ────────────────────
+  // ✅ Una sola lista. Cada slug tiene un estado:
+  //      "ver"       → puede ver la invitación normalmente
+  //      "bloqueado" → ve la pantalla de "invitación no disponible"
+  //    (bloqueado SIEMPRE gana, aunque olvides borrarlo de otro lado,
+  //    porque solo existe este único lugar donde se define el estado)
+  //
+  // ✅ Si un slug NO aparece aquí (alguien inventó su propio link),
+  //    ve la pantalla de "enlace no habilitado".
+  //
+  // Para bloquear a alguien: solo cambia su valor de "ver" a "bloqueado".
+  invitados: {
+    estado: {
+      "elmer-y-carmen":"ver", "samuel":"ver", "familia-herrera-montenegro":"ver",
+      "familia-duron-herrera":"ver", "familia-espino-duron":"ver", "tio-manuel-y-lilian":"ver",
+      "josselin-herrera":"ver", "ruben-herrera":"ver", "danny-garcia":"ver",
+      "familia-herrera-perdomo":"ver", "familia-herrera-cruz":"ver", "ruth-mejia":"ver",
+      "damaris-mejia":"ver", "angie-mejia":"ver", "martha-pineda":"ver",
+      "tia-nana-tia-gladis-y-ritza":"ver", "tio-german-y-tia-chayita":"ver", "gabriela-y-diana":"ver",
+      "tia-kenia":"ver", "saul-y-nahomy":"ver", "leonardo-y-angelica":"ver",
+      "tio-henry":"ver", "familia-flores-aguilera":"ver", "tia-belkis":"ver",
+      "tio-rudy-y-tia-miriam":"ver", "tio-will":"ver", "melissa-obando":"ver",
+      "pastor-alejandro-y-hna-doris":"ver", "orlando-y-pamela":"ver", "daniel-colindres":"ver",
+      "gloribel-mejia":"ver", "valeria-colindres":"ver", "ariel-garcia-y-daniela-colindres":"ver",
+      "familia-miller":"ver", "edwin-funez-y-maria-colindres":"ver", "carlos-colindres-y-gaby":"ver",
+      "familia-colindres-machado":"ver", "familia-colindres-briceño":"ver", "mami-enelda":"ver",
+      "merary-mejia":"ver", "rowena-mejia-y-jazzel-suazo":"ver", "viena-mejia":"ver",
+      "carla-mejia":"ver", "bayron-y-katia":"ver", "familia-mejia-gomez":"ver",
+      "katherine-jimenez-y-eddy-flores":"ver", "ronaldo-mejia":"ver", "phillip-montante":"ver",
+      "evy-mejia-y-edilberto-jimenez":"ver", "ruben-ayestas":"ver", "daniela-nuñez":"ver",
+      "vetty-martinez":"ver", "veronica-urbina":"ver", "darcy-amaya":"ver",
+      "cristian-umanzor":"ver", "andrea-yanes":"ver", "evelyn-reyes":"ver",
+      "carlos-lainez":"ver", "carlos-carias":"ver", "carlos-cabrera":"ver",
+      "allison-mendoza":"ver", "pastora-leyla-zuniga":"ver"
+    },
+
+    textos: {
+      noHabilitado: {
+        titulo: "Este enlace no está habilitado",
+        texto:  "Este enlace no corresponde a ninguna invitación de nuestra boda. Si crees que se trata de un error, escríbenos directamente y con gusto te ayudamos."
+      },
+      bloqueado: {
+        titulo: "Esta invitación ya no está disponible",
+        texto:  "Este enlace fue deshabilitado. Si tienes alguna duda, escríbenos directamente."
+      }
+    }
+  },
+
   // ── CLOUDINARY ────────────────────────────────────────
   cloudinary: {
     cloudName:    "di6hpumct",
