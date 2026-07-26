@@ -113,7 +113,7 @@ window.BODA_CONFIG = {
       "familia-miller":"ver", "edwin-funez-y-maria-colindres":"ver", "carlos-colindres-y-gaby":"ver",
       "familia-colindres-machado":"ver", "familia-colindres-briceño":"ver", "mami-enelda":"ver",
       "merary-mejia":"ver", "rowena-mejia-y-jazzel-suazo":"ver", "viena-mejia":"ver",
-      "carla-mejia":"ver", "bayron-y-katia":"ver", "familia-mejia-gomez":"ver",
+      "carla-mejia":"ver", "bayron-y-katia":"bloqueado", "familia-mejia-gomez":"ver",
       "katherine-jimenez-y-eddy-flores":"ver", "ronaldo-mejia":"ver", "phillip-montante":"ver",
       "evy-mejia-y-edilberto-jimenez":"ver", "ruben-ayestas":"ver", "daniela-nuñez":"ver",
       "vetty-martinez":"ver", "veronica-urbina":"ver", "darcy-amaya":"ver",
