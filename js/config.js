@@ -83,7 +83,7 @@ window.BODA_CONFIG = {
     "\"Así que no son ya más dos, sino una sola carne; por tanto, lo que Dios juntó, no lo separe el hombre.\" Mateo 19:6"
   ],
 
-  rsvp: { descripcion: "Nos encantaría contar con tu presencia. Por favor confírmanos antes del 01 de agosto de 2026." },
+  rsvp: { descripcion: "Nos encantaría contar con tu presencia. Por favor confírmanos tu asistencia." },
   footer: { frase: "Con amor, los esperamos." },
 
   // ── CONTROL DE ACCESO — Invitados ────────────────────
