@@ -10,8 +10,8 @@ window.BODA_CONFIG = {
   evento: {
     fecha:      "2026-10-03T11:00:00",
     fechaTexto: "Sábado, 03 de octubre de 2026",
-    hora:       "10:30 A.M",
-    lugar:      "Cerro Grande, Valle de Ángeles",
+    hora:       "10:00 A.M",
+    lugar:      "Desvio a las 3 Rosas, Valle de Ángeles",
     mapsUrl:    "https://maps.app.goo.gl/5VHu6E56MUNGPrey8?g_st=ac",
     wazeUrl:    "https://waze.com/ul?ll=14.129855588419803,-87.03454760434946&navigate=yes",
     coordenadas:{ lat: 14.129855588419803, lng: -87.03454760434946 }
@@ -40,7 +40,7 @@ window.BODA_CONFIG = {
 
   regalo: {
     titulo: "Regalos",
-    texto: "Tu presencia es el mejor regalo en este día especial; cualquier otro detalle será una contribución para nuestro hogar y futuros sueños."
+    texto: "Tu presencia es el mejor regalo en este día especial; cualquier otro detalle o efectivo será una contribución para nuestro hogar y futuros sueños."
   },
 
   // ── LÍNEA DE TIEMPO — 9 eventos ──────────────────────
