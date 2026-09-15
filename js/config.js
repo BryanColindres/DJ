@@ -8,7 +8,7 @@ window.BODA_CONFIG = {
   novia:  { nombre: "Stefany Jissel", apellidos: "Herrera Flores"   },
 
   evento: {
-    fecha:      "2026-10-03T11:00:00",
+    fecha:      "2026-10-03T10:00:00",
     fechaTexto: "Sábado, 03 de octubre de 2026",
     hora:       "10:00 A.M",
     lugar:      "Desvio a las 3 Rosas, Valle de Ángeles",
