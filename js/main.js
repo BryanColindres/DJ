@@ -32,7 +32,7 @@ function applyConfig() {
   // venueName = nombre del salon, eventVenue = dirección
   // Ambos están fijos en el HTML — solo actualizamos la dirección
   set('venueName',  'Valletal Eventos');
-  set('eventVenue', 'Cerro Grande, Valle de Ángeles');
+  set('eventVenue', 'Desvio a las 3 Rosas, Valle de Ángeles');
 
   // Versículo
   const bq = $('verseText');
