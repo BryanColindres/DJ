@@ -107,7 +107,7 @@ window.BODA_CONFIG = {
       "tia-nana-tia-gladis-y-ritza":"ver", "tio-german-y-tia-chayita":"ver", "gabriela-y-diana":"ver",
       "tia-kenia":"ver", "saul-y-nahomy":"bloqueado", "leonardo-y-angelica":"ver",
       "tio-henry":"ver", "familia-flores-aguilera":"ver", "tia-belkis":"ver",
-      "tio-rudy-y-tia-miriam":"ver", "tio-will":"bloqueado", "melissa-obando":"ver",
+      "tio-rudy-y-tia-miriam":"ver", "tio-will":"bloqueado", "melissa-obando-y-daniel-urquia":"ver",
       "pastor-alejandro-y-hna-doris":"ver", "orlando-y-pamela":"ver", "daniel-colindres":"ver",
       "gloribel-mejia":"ver", "valeria-colindres":"ver", "ariel-garcia-y-daniela-colindres":"ver",
       "familia-miller":"ver", "edwin-funez-y-maria-colindres":"ver", "carlos-colindres-y-gaby":"bloqueado",
@@ -118,7 +118,7 @@ window.BODA_CONFIG = {
       "vetty-martinez":"ver", "veronica-urbina":"ver", "darcy-amaya":"ver",
       "cristian-umanzor":"ver", "andrea-yanes":"ver", "evelyn-reyes":"ver",
       "carlos-lainez":"ver", "carlos-carias":"ver", "carlos-cabrera":"ver",
-      "allison-mendoza":"ver", "pastora-leyla-zuniga":"ver","nataly-sosa":"ver","pastora-leyla-zuniga":"ver", "danny-guerrero":"bloqueado","carmen-flores":"ver","orfilia-garcia":"ver","lilian-hernandez":"ver","hermana-bertha":"ver"
+      "allison-mendoza":"ver", "pastora-leyla-zuniga":"ver","nataly-sosa":"ver","pastora-leyla-zuniga":"ver", "danny-guerrero":"bloqueado","carmen-flores":"ver","orfilia-garcia":"ver","lilian-hernandez":"ver","monica-lara":"ver"
     },
 
     textos: {
